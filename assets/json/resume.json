@@ -22,7 +22,7 @@
       }
     ]
   },
-  "work": [
+  "working experiences": [
     {
       "name": "Institute for Advanced Study, Princeton University",
       "position": "Professor of Theoretical Physics",
@@ -49,68 +49,24 @@
     {
       "institution": "University of Virginia",
       "location": "Charlottesville VA, United States",
-      "area": "Embedded Engineering",
+      "area": "Embedded Engineering. Software Engineering, Hardware Engineering, System Engineering",
       "studyType": "Bachelor of Science",
       "startDate": "2021-08-20",
       "endDate": "2025-05-20",
       "GPA": "10",
-      "courses": ["Theory of Relativity"]
+      "courses": ["Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development, etc."]
     }
   ],
   "awards": [
     {
-      "title": "Nobel Prize in Physics",
-      "date": "1921-11-01",
-      "awarder": "Royal Swedish Academy of Sciences",
-      "url": "https://www.nobelprize.org/prizes/physics/1921/einstein/biographical/",
-      "summary": "The Nobel Prizes are five separate prizes that, according to Alfred Nobel's will of 1895, are awarded to 'those who, during the preceding year, have conferred the greatest benefit to humankind.'"
+      "title": "Soong Ching Ling Scholarship - China's Only National Scholarship Award in the K-12 education system",
+      "date": "2018",
+      "awarder": "Ministry of Education of the People's Republic of China",
+      "url": "https://www.sclf.org/gyxmx/gzxmz/sqljxj/",
+      "summary": "Haizhou's excellence in diverse development across talent, academic and achievement was credited with the scholarship"
     }
   ],
-  "certificates": [
-    {
-      "name": "Machine Learning",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-location-dot"
-    },
-    {
-      "name": "Quantum Computing",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-tag"
-    },
-    {
-      "name": "Quantum Information",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-envelope"
-    },
-    {
-      "name": "Quantum Cryptography",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-hashtag"
-    },
-    {
-      "name": "Quantum Communication",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-calendar"
-    },
-    {
-      "name": "Quantum Teleportation",
-      "date": "2018-01-01",
-      "issuer": "Stanford University",
-      "url": "https://example.com",
-      "icon": "fa-solid fa-clipboard-check"
-    }
-  ],
-  "publications": [
+  "researchs": [
     {
       "name": "Zur Elektrody/namik bewegter Körper",
       "publisher": "Annalen der Physik",
