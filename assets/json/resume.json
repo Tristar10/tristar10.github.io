@@ -45,8 +45,16 @@
       "startDate": "2023-07-10",
       "endDate": "2023-08-15",
       "summary": "- Explored the abilities of different AI LLMs, and used different tools like Langchain, and Finetune, to see the possibilities of the models.\n- Worked on serval projects including training LLM and fine-tuning them to be more suitable to educational scenarios.\n - Eventually, I used the Langchain-GLM tool that parsed a pdf and makes it to a language network, and the AI becomes an encyclopedia for introducing my university.",
-      "highlights": ["Assembly, Computer Architecture, C/C++, Computer Systems"]
+      "highlights": ["LLM, AI, CUDA, Pytorch"]
     },
+    {
+      "name": "Intellifusion",
+      "position": "Marketing Managing Intern",
+      "startDate": "2023-06-04",
+      "endDate": "2023-07-14",
+      "summary": "- Help investigated the business side of AI-enhancing smart city systems. Provided ideas on how could AI makes fusion into other systems that would be beneficial.\n- Learned about the AI-enhanced products, their unique side of application and technical background, then organized and produced technological marketing materials to customers. ",
+      "highlights": ["AI, Multimedia Production, Business Analysis"]
+    }
   ],
   "volunteer": [
     {
