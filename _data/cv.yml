@@ -2,18 +2,18 @@
   type: map
   contents:
     - name: Full Name
-      value: Albert Einstein
+      value: Haizhou Yu
     - name: Date of Birth
-      value: 14th March 1879
+      value: 19th February 2003
     - name: Languages
-      value: English, German
+      value: English, Chinese, Japanese
 
 - title: Education
   type: time_table
   contents:
-    - title: PhD
-      institution: University of Zurich, Zurich, Switzerland
-      year: 1905
+    - title: Undergraduate - Bachelor's Degree
+      institution: University of Virginia, Charlottesville VA, United States
+      year: 2025
       description:
         - Description 1.
         - Description 2.

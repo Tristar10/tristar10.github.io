@@ -22,16 +22,31 @@
       }
     ]
   },
-  "working experiences": [
+  "work": [
     {
-      "name": "Institute for Advanced Study, Princeton University",
-      "position": "Professor of Theoretical Physics",
-      "url": "https://example.com",
-      "startDate": "1933-01-01",
-      "endDate": "1955-01-01",
-      "summary": "Teaching at Palmer Physical Laboratory (now 302 Frist Campus Center). While not a professor at Princeton, I associated with the physics professors and continued to give lectures on campus.",
-      "highlights": ["Relativity"]
-    }
+      "name": "PACCAR Inc/Kenworth Truck Co.",
+      "position": "Diagnostic System Engineering Intern",
+      "startDate": "2024-05-20",
+      "endDate": "2024-08-09",
+      "summary": "- Assisted on data collection and handling. Wrote Python scripts to automate file handling.\n- Participated in bug fixes and develop new content on the diagnostic software DAVIE 4, using Bosch Grade-X IDE \n- Learnt how application life-cycle works in an agile application development framework. Participated in all different meetings (Scrum, Triage, etc.) and made contributions to the team.",
+      "highlights": ["Agile Application Development, Software Development Life Cycle (SDLC), Software Engineering, System Engineering"]
+    },
+    {
+      "name": "University of Virginia",
+      "position": "Computer Science Teaching Assistant",
+      "startDate": "2022-08-20",
+      "endDate": "Present",
+      "summary": "- Teaching Assistant for Computer Systems and Organizations I and II. Topics included assembly, machine code, page tables, C/C++, cache, tlb, pipelines etc.\n- Hold office hours to answer both homework and also conceptual questions for students.\n- Participated in grading and meetings and provided many valuable advices to improve course structure/content",
+      "highlights": ["Assembly, Computer Architecture, C/C++, Computer Systems"]
+    },
+    {
+      "name": "Malong Technologies",
+      "position": "Algorithm Engineering Intern",
+      "startDate": "2023-07-10",
+      "endDate": "2023-08-15",
+      "summary": "- Explored the abilities of different AI LLMs, and used different tools like Langchain, and Finetune, to see the possibilities of the models.\n- Worked on serval projects including training LLM and fine-tuning them to be more suitable to educational scenarios.\n - Eventually, I used the Langchain-GLM tool that parsed a pdf and makes it to a language network, and the AI becomes an encyclopedia for introducing my university.",
+      "highlights": ["Assembly, Computer Architecture, C/C++, Computer Systems"]
+    },
   ],
   "volunteer": [
     {
@@ -59,14 +74,14 @@
   ],
   "awards": [
     {
-      "title": "Soong Ching Ling Scholarship - China's Only National Scholarship Award in the K-12 education system",
+      "title": "Soong Ching Ling Scholarship",
       "date": "2018",
       "awarder": "Ministry of Education of the People's Republic of China",
       "url": "https://www.sclf.org/gyxmx/gzxmz/sqljxj/",
-      "summary": "Haizhou's excellence in diverse development across talent, academic and achievement was credited with the scholarship"
+      "summary": "It's China's Only National Scholarship Award in the K-12 education system: Haizhou's excellence in diverse development across talent, academic and achievement was credited with the scholarship"
     }
   ],
-  "researchs": [
+  "publications": [
     {
       "name": "Zur Elektrody/namik bewegter Körper",
       "publisher": "Annalen der Physik",
@@ -91,7 +106,7 @@
   ],
   "skills": [
     {
-      "name": "Physics",
+      "name": "Programming",
       "level": "Master",
       "icon": "fa-solid fa-hashtag",
       "keywords": [
@@ -128,18 +143,6 @@
         "Quantum Communication",
         "Quantum Teleportation"
       ]
-    }
-  ],
-  "references": [
-    {
-      "name": "Professor John Doe",
-      "icon": "fa-solid fa-laptop",
-      "reference": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam condimentum, diam quis convallis euismod, arcu mi ullamcorper lorem, a vestibulum nunc magna at sem. Sed in risus ac felis varius blandit. D"
-    },
-    {
-      "name": "Professor John Doe",
-      "icon": "fa-solid fa-thumbtack",
-      "reference": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam condimentum, diam quis convallis euismod, arcu mi ullamcorper lorem, a vestibulum nunc magna at sem. Sed in risus ac felis varius blandit. D"
     }
   ],
   "projects": [
