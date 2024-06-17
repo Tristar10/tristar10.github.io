@@ -58,25 +58,23 @@
   ],
   "volunteer": [
     {
-      "organization": "People's Climate March",
+      "organization": "Zi Fei Yu Autistic Children Development Center",
       "location": "Zurich, Switzerland",
-      "position": "Lead Organizer",
-      "url": "https://example.com",
-      "startDate": "2014-04-01",
-      "endDate": "2015-07-01",
-      "summary": "Lead organizer for the New York City branch of the People's Climate March, the largest climate march in history.",
-      "highlights": ["Awarded 'Climate Hero' award by Greenpeace for my efforts organizing the march.", "Men of the year 2014 by Time magazine"]
+      "position": "Musical performance assistant",
+      "startDate": "2020-11-01",
+      "endDate": "2021-04-01",
+      "summary": "Helped organizing and assisting autistic children performing musical composition. This includes helping them to set up their synthesizers, reading scores, etc."
     }
   ],
   "education": [
     {
       "institution": "University of Virginia",
-      "location": "Charlottesville VA, United States",
-      "area": "Embedded Engineering. Software Engineering, Hardware Engineering, System Engineering",
+      "location": "Charlottesville VA, U.S.",
+      "area": "Areas of studying: Embedded Engineering. Software Engineering, Hardware Engineering, System Engineering",
       "studyType": "Bachelor of Science",
       "startDate": "2021-08-20",
       "endDate": "2025-05-20",
-      "GPA": "10",
+      "GPA": "3.7",
       "courses": ["Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development, etc."]
     }
   ],
@@ -87,6 +85,16 @@
       "awarder": "Ministry of Education of the People's Republic of China",
       "url": "https://www.sclf.org/gyxmx/gzxmz/sqljxj/",
       "summary": "It's China's Only National Scholarship Award in the K-12 education system: Haizhou's excellence in diverse development across talent, academic and achievement was credited with the scholarship"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Quantum Computing",
+      "summary": "Quantum computing is the use of quantum-mechanical phenomena such as superposition and entanglement to perform computation. Computers that perform quantum computations are known as quantum computers.",
+      "highlights": ["Quantum Teleportation", "Quantum Cryptography"],
+      "startDate": "2018-01-01",
+      "endDate": "2018-01-01",
+      "url": "https://example.com"
     }
   ],
   "publications": [
@@ -115,52 +123,102 @@
   "skills": [
     {
       "name": "Programming",
-      "level": "Master",
+      "level": "Expert",
       "icon": "fa-solid fa-hashtag",
       "keywords": [
-        "Quantum Mechanics",
-        "Quantum Computing",
-        "Quantum Information",
-        "Quantum Cryptography",
-        "Quantum Communication",
-        "Quantum Teleportation"
+        "C/C++",
+        "Java",
+        "Python"
+      ]
+    },
+    {
+      "name": "Computer Aided Design",
+      "level": "Beginner",
+      "icon": "fa-solid fa-hashtag",
+      "keywords": [
+        "Solidworks",
+        "Fusion 360"
+      ]
+    },
+    {
+      "name": "Electrical related skills",
+      "level": "Advanced",
+      "icon": "fa-solid fa-hashtag",
+      "keywords": [
+        "EDA/PCB design software like Ultiboard and Multisim",
+        "Soldering",
+        "Graphing using Python"
       ]
     }
   ],
   "languages": [
     {
-      "language": "German",
+      "language": "Chinese",
       "fluency": "Native speaker",
       "icon": ""
     },
     {
       "language": "English",
-      "fluency": "Fluent",
+      "fluency": "Fluent/Second Language",
+      "icon": ""
+    },
+    {
+      "language": "Japanese",
+      "fluency": "Begineer",
       "icon": ""
     }
   ],
   "interests": [
     {
-      "name": "Physics",
+      "name": "Music",
       "icon": "fa-solid fa-tag",
       "keywords": [
-        "Quantum Mechanics",
-        "Quantum Computing",
-        "Quantum Information",
-        "Quantum Cryptography",
-        "Quantum Communication",
-        "Quantum Teleportation"
+        "Music Production",
+        "DJing",
+        "Music Analysis",
+        "Instrumental Performance",
+        "Effect Plugins Programming"
       ]
-    }
-  ],
-  "projects": [
+    },
     {
-      "name": "Quantum Computing",
-      "summary": "Quantum computing is the use of quantum-mechanical phenomena such as superposition and entanglement to perform computation. Computers that perform quantum computations are known as quantum computers.",
-      "highlights": ["Quantum Teleportation", "Quantum Cryptography"],
-      "startDate": "2018-01-01",
-      "endDate": "2018-01-01",
-      "url": "https://example.com"
+      "name": "Automotive",
+      "icon": "fa-solid fa-tag",
+      "keywords": [
+        "Car Culture",
+        "Car Maintenance",
+        "Car Modification",
+        "Engineering and Retrofits",
+        "Drive/AutoX/Circuit Racing"
+      ]
+    },
+    {
+      "name": "Japanese Culture",
+      "icon": "fa-solid fa-tag",
+      "keywords": [
+        "Anime",
+        "VOCALOID",
+        "J-Pop",
+        "Car Culture"
+      ]
+    },
+    {
+      "name": "Photography/Videography",
+      "icon": "fa-solid fa-tag",
+      "keywords": [
+        "Photography",
+        "Videography",
+        "Photo Editing",
+        "Video Editing/Production"
+      ]
+    },
+    {
+      "name": "Gaming",
+      "icon": "fa-solid fa-tag",
+      "keywords": [
+        "Racing Games",
+        "Rhythm Games",
+        "Overwatch"
+      ]
     }
   ]
 }
