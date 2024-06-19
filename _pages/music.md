@@ -26,7 +26,7 @@ This is an example post with audios. It supports local audio files.
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.css">
     <link rel="stylesheet" href="https://michael-zhigulin.github.io/mz-codepen-projects/Material%20Design%20UI%20Audio%20Player/font/font.css">
-    <link rel="stylesheet" href="assets/css/musicplayer1.less">
+    <link rel="stylesheet" href="assets/css/musicplayer.css">
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
     <script src="assets/js/musicplayer1.js"></script>
