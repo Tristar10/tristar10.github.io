@@ -10,7 +10,6 @@ horizontal: false
 ---
 <section id="categories" markdown="1">
 This is an example post with audios. It supports local audio files.
-<link rel="musicplayer" href="assets/css/musicplayer.scss">
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         {% include audio.liquid path="assets/audio/HC114.mp3" controls=true %}
