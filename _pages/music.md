@@ -22,4 +22,6 @@ This is an example post with audios. It supports local audio files.
     A simple, elegant caption looks good between video rows, after each row, or doesn't have to be there at all.
 </div>
 </section>
+<section id="player" markdown="0">
 {% include musicPlayer.html %}
+</section>
