@@ -1,93 +1,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Row Audio Players</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:400">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.css">
-    <link rel="stylesheet" href="https://michael-zhigulin.github.io/mz-codepen-projects/Material%20Design%20UI%20Audio%20Player/font/font.css">
-    <link rel="stylesheet" href="/assets/css/musicplayer.css">
-    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
-    <script type="text/javascript" src="/assets/js/musicplayer1.js" ></script>
     <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="player">
-        <div class="like waves-effect waves-light">
-        <i class="icon-heart"></i>
-        </div>
-        <div class="mask"></div>
-        <ul class="player-info info-one">
-        <li>Rock'n'Roll Nerd</li>
-        <li>Tim Minchin</li>
-        <li>5:34</li>
-        </ul>
-        <ul class="player-info info-two">
-        <li>Rock'n'Roll Nerd</li>
-        <li>Tim Minchin</li>
-        <li><span id="duration"></span><i> / </i>5:34</li>
-        </ul>
-        <div id="play-button" class="unchecked">
-        <i class="icon icon-play"></i>
-        </div>
-        <div class="control-row">
-        <div class="waves-animation-one"></div>
-        <div class="waves-animation-two"></div>
-        <div id="pause-button">
-            <i class="icon"></i>
-        </div>
-        <div class="seek-field">
-            <input id="audioSeekBar" min="0" max="334" step="1" value="0" type="range" oninput="audioSeekBar()" onchange="this.oninput()">
-        </div>
-        <div class="volume-icon">
-            <i class="icon-volume-up"></i>
-        </div>
-        <div class="volume-field">
-            <input type="range" min="0" max="100" value="100" step="1" oninput="audio.volume = this.value/100" onchange="this.oninput()">
-        </div>
-        </div>
-    </div>
-    </div>
-    <div class="container">
-        <div class="player">
-        <div class="like waves-effect waves-light">
-        <i class="icon-heart"></i>
-        </div>
-        <div class="mask"></div>
-        <ul class="player-info info-one">
-        <li>Rock'n'Roll Nerd</li>
-        <li>Tim Minchin</li>
-        <li>5:34</li>
-        </ul>
-        <ul class="player-info info-two">
-        <li>Rock'n'Roll Nerd</li>
-        <li>Tim Minchin</li>
-        <li><span id="duration"></span><i> / </i>5:34</li>
-        </ul>
-        <div id="play-button " class="unchecked">
-        <i class="icon icon-play"></i>
-        </div>
-        <div class="control-row">
-        <div class="waves-animation-one"></div>
-        <div class="waves-animation-two"></div>
-        <div id="pause-button">
-            <i class="icon"></i>
-        </div>
-        <div class="seek-field">
-            <input id="audioSeekBar" min="0" max="334" step="1" value="0" type="range" oninput="audioSeekBar()" onchange="this.oninput()">
-        </div>
-        <div class="volume-icon">
-            <i class="icon-volume-up"></i>
-        </div>
-        <div class="volume-field">
-            <input type="range" min="0" max="100" value="100" step="1" oninput="audio.volume = this.value/100" onchange="this.oninput()">
-        </div>
-        </div>
-    </div>
-    </div>
-    <iframe id="sc-widget" src="https://w.soundcloud.com/player/?url=https://api.soundcloud.com/users/1539950/favorites" width="100%" height="465" scrolling="no" frameborder="no"></iframe>
+    <iframe width="100%" height="300" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1852413705&color=%23525764&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/james-yu-38183882" title="TristarP" target="_blank" style="color: #cccccc; text-decoration: none;">TristarP</a> · <a href="https://soundcloud.com/james-yu-38183882/untitled1" title="Untitled1" target="_blank" style="color: #cccccc; text-decoration: none;">Untitled1</a></div>
     <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
     <script type="text/javascript">
     (function(){
@@ -110,6 +27,7 @@
         // get the value of the current position
       });
     }());
+    
     </script>
     <iframe id="sc-widget" width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F1848538&show_artwork=true"></iframe>
     <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
@@ -127,19 +45,7 @@
             });
           });
         });
-    
       }());
     </script>
-
-
-    <!-- JavaScript files and scripts if necessary -->
-    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/node-waves/0.7.5/waves.min.js"></script>
-    <script src="src/musicplayer1.js"></script>
 </body>
-</div>
-<audio id="audio-player" ontimeupdate="SeekBar()" ondurationchange="CreateSeekBar()" preload="auto" loop>
-  <source src="https://michael-zhigulin.github.io/mz-codepen-projects/Material%20Design%20UI%20Audio%20Player/audio/Tim%20Minchin%20%E2%80%94%20Rock%20n%20Roll%20Nerd.ogg" type="audio/ogg">
-  <source src="https://michael-zhigulin.github.io/mz-codepen-projects/Material%20Design%20UI%20Audio%20Player/audio/Tim%20Minchin%20%E2%80%94%20Rock%20n%20Roll%20Nerd.mp3" type="audio/mpeg">
-</audio>
 </html>
