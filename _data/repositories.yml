@@ -1,12 +1,9 @@
 github_users:
-  - torvalds
-  - alshedivat
+  - tristar10
 
 github_repos:
-  - alshedivat/al-folio
-  - twbs/bootstrap
-  - jekyll/jekyll
-  - jquery/jquery
-  - FortAwesome/Font-Awesome
-  - jpswalsh/academicons
-  - mathjax/MathJax
+  - Tristar10/MU45-Wobbler-Plugin
+  - MU45-Delay-Plugin
+  - Tristar10/BLE-Tagger
+  - Tristar10/MU45-Chorus-Plugin
+  - Tristar10/MU45-Equalizer-Plugin
