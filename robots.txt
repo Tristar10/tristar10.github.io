@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://tristar10.github.io/sitemap.xml
+Sitemap: https://tristar10.github.io/tristar10.github.io./sitemap.xml
