@@ -19,16 +19,12 @@ This is an EQ plugin that tunes the sound of a sample/instrument. It takes in a 
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/EQ.png" title="example image" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/EQ.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
-</div>
-
-<div class="row">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/EQSFD.png" title="example image" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/EQSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
-
 <div class="caption">
     Above are the GUI and the signal flow diagram of the EQ Plugin.
 </div>
@@ -51,25 +47,13 @@ Here's a clip that I use the plugin in production: In this track, the chorus is 
 This is a Chorous plugin that produces a "Chorous" effect on a signal. This is by using a comb filter and a slight delay to create a "stack" of sound that simlate multiple people singing, or multiple instruments playing, etc. Again, I have given the user full control of the parameters. It is worth mentioning that the two dB sliders are actual linear dB gain, rather than a traditional exponential gain.
 
 <div class="row">
-    <div class="col-sm mt-3 mt-md-0">
+    <div class="col-sm-8 mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/ChorousSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/Chorous.png" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/ChorousSFD.png" title="example image" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
+    <div class="col-sm-4 mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/Chorous.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
-
 <div class="caption">
     Above are the GUI and the signal flow diagram of the chorous Plugin.
 </div>
@@ -97,7 +81,7 @@ This is a delay plugin that is supposed to create a delay effect, which is simil
     <div class="col-sm mt-3 mt-md-0">
     </div>
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/Delay.png" title="example image" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/Delay.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
     <div class="col-sm mt-3 mt-md-0">
     </div>
@@ -113,7 +97,11 @@ The ecological example is where I used the delay in my most used scenario: mixin
     <div class="col-sm mt-3 mt-md-0">
     </div>
     <div class="col-sm mt-3 mt-md-0">
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
             {% include audio.liquid path="assets/audio/Delay.wav" controls=true %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
     </div>
     <div class="col-sm mt-3 mt-md-0">
     </div>
