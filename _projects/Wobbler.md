@@ -53,8 +53,12 @@ Starting off, what is Wobble and why make a plugin for this purpose only? I am a
 I have been using Xfer Records's LFOTool for quite a while to create the wobble effects. However, the plugin although very versatile, it is also very complicated. Therefore I wanted to make a straighHorward, simple yet useful plugin to create the effect of wobble on any instruments. This could be synths, bass, leads, or even other samples like vocals.
 
 <div class="row">
-    <div class="col-sm-4 mt-3 mt-md-0">
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
         {% include figure.liquid loading="eager" path="assets/img/LFOTool.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
 <div class="caption">
@@ -64,8 +68,12 @@ I have been using Xfer Records's LFOTool for quite a while to create the wobble 
 To start with, the plugin is essentially two gains per channel that were modulated by a pair of LFOs (Low-Frequency Oscillators), and then the mix between the dry and wet signals could be adjusted to produce an optimal effect. Moreover, a low pass filter is also included to filter out some of the nasty high-frequency noises. 
 
 <div class="row">
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
     <div class="col-sm-4 mt-3 mt-md-0">
         {% include figure.liquid loading="eager" path="assets/img/WobblerSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
 <div class="caption">
@@ -78,8 +86,12 @@ the round edge rectangular design, and one for the “Wobble” word logo and th
 It took me one whole day from starXng to design the GUI to finish, and I really put a lot of work and effort as well as cra-smanship into it, and I hope everyone else will be pleased by the looks of it as what I do.
 
 <div class="row">
-    <div class="col-sm-4 mt-3 mt-md-0">
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
         {% include figure.liquid loading="eager" path="assets/img/Wobbler.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
 <div class="caption">
@@ -98,7 +110,7 @@ It took me one whole day from starXng to design the GUI to finish, and I really 
     </div>
 </div>
 
-I made this song using the wobble chords effects generated from the Wobbler. You can find the video of this on [the Wobbler repo](https://github.com/Tristar10/MU45-Wobbler-Plugin)
+I made this song using the wobble chords effects generated from the Wobbler. You can find the video of this on [the Wobbler repo](http://github.com/Tristar10/MU45-Wobbler-Plugin)
 
 <html lang="en">
 <head>
@@ -132,4 +144,4 @@ I made this song using the wobble chords effects generated from the Wobbler. You
     </script>
 </body>
 
-For detail explation of the algorithm and specs, please visit [the Wobbler repo](https://github.com/Tristar10/MU45-Wobbler-Plugin) to see the source code, python visualization, and my technical report.
+For detail explation of the algorithm and specs, please visit [the Wobbler repo](http://github.com/Tristar10/MU45-Wobbler-Plugin) to see the source code, python visualization, and my technical report.
