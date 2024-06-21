@@ -1,21 +1,51 @@
 ---
 layout: page
-title: AU/VST effects plugin collection
-description: Here is a collection of my home-made AU/VST music effects for musical production.
-img: assets/img/EQ.png
-importance: 1
+title: Wobbler-A VST/AU Plugin that makes your sound wobble.
+description: This effect plugin is meant to create WObble Chords/Bass in music.
+img: assets/img/Cover.png
+importance: 2
 category: work
 ---
 
 I have been producing music for 6+ years now, and being as a computer engineer with solid foundation of digital signal processing and electrical engineering, I have always been thinking on combine my knowledge into music-making.
 I took a wonderful course taught by Professor Luke Dahl in University of Virginia, and introduced us to the projucer, a C++ based platform that uses DSP to produce audio effect plugins and synthesizers.
-Here I will introduce you to all of the plugins that I made using this platform, tell you what they do, and what are their uniqueness. As this website is more of a comprehensive overview of what I've done, I will not explain too deep. For more `in-depth details`, you can find the `source code` and the `technical project report` of these plugins in my [Github Repos](http://github.com/tristar10) that starts with `'MU45'`.
+Here I will introduce you to the biggest audio effects plugin that I made, the Wobbler. As this website is more of a comprehensive overview of what I've done, I will not explain too deep. For more `in-depth details`, you can find the `source code` and the `technical project report` of these plugins in my [Github Repos](http://github.com/tristar10) that starts with `'MU45'`.
 
 Again, huge thanks to professor Dahl for kickstarting all of these. This is undoubtly the best course I've ever taken in UVA.
 
+Starting off, what is Wobble and why make a plugin for this purpose only? I am a future house lover, and one of the signature sounds for this genre and other genres including bass house, future bass, etc, use this effect.
 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
+</head>
+<body>
+  <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/334196027&color=%23525764&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/dondiablo" title="Don Diablo" target="_blank" style="color: #cccccc; text-decoration: none;">Don Diablo</a> · <a href="https://soundcloud.com/dondiablo/momentum" title="Don Diablo - Momentum" target="_blank" style="color: #cccccc; text-decoration: none;">Don Diablo - Momentum</a></div>
+    <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    (function(){
+      var widgetIframe = document.getElementById('sc-widget'),
+          widget       = SC.Widget(widgetIframe);
 
-This is an EQ plugin that tunes the sound of a sample/instrument. It takes in a signal than modulates the digital filters' parameters according to the user input to change the effect of the sound. The plugin gives the users many controls like the breakpoint frequency of the filters, the Q value of the filters and the gain of the filters. The UI is configured logically and intuitively so anyone can use without any problems. It also has four built-in preset buttons that people might found them handy in music production.
+      widget.bind(SC.Widget.Events.READY, function() {
+        widget.bind(SC.Widget.Events.PLAY, function() {
+          // get information about currently playing sound
+          widget.getCurrentSound(function(currentSound) {
+            console.log('sound ' + currentSound.get('') + 'began to play');
+          });
+        });
+        // get current level of volume
+        widget.getVolume(function(volume) {
+          console.log('current volume value is ' + volume);
+        });
+        // set new volume level
+        widget.setVolume(50);
+        // get the value of the current position
+      });
+    }());
+    </script>
+</body>
 
 <div class="row">
     <div class="col-sm-4 mt-3 mt-md-0">
