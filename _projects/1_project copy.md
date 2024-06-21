@@ -47,10 +47,10 @@ Here's a clip that I use the plugin in production: In this track, the chorus is 
 This is a Chorous plugin that produces a "Chorous" effect on a signal. This is by using a comb filter and a slight delay to create a "stack" of sound that simlate multiple people singing, or multiple instruments playing, etc. Again, I have given the user full control of the parameters. It is worth mentioning that the two dB sliders are actual linear dB gain, rather than a traditional exponential gain.
 
 <div class="row">
-    <div class="col-sm-8 mt-3 mt-md-0">
+    <div class="col-sm-10 mt-3 mt-md-0">
         {% include figure.liquid loading="eager" path="assets/img/ChorousSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
-    <div class="col-sm-4 mt-3 mt-md-0">
+    <div class="col-sm-2 mt-3 mt-md-0">
         {% include figure.liquid loading="eager" path="assets/img/Chorous.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
