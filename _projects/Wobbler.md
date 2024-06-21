@@ -50,8 +50,10 @@ Starting off, what is Wobble and why make a plugin for this purpose only? I am a
     Here's the track that defined wobble effect in Future House: Momentum
 </div>
 
+<section id="BodyPart" markdown="1">
 I have been using Xfer Records's LFOTool for quite a while to create the wobble effects. However, the plugin although very versatile, it is also very complicated. Therefore I wanted to make a straighHorward, simple yet useful plugin to create the effect of wobble on any instruments. This could be synths, bass, leads, or even other samples like vocals.
-
+<div class="row">
+</div>
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
@@ -67,7 +69,8 @@ I have been using Xfer Records's LFOTool for quite a while to create the wobble 
 </div>
 
 To start with, the plugin is essentially two gains per channel that were modulated by a pair of LFOs (Low-Frequency Oscillators), and then the mix between the dry and wet signals could be adjusted to produce an optimal effect. Moreover, a low pass filter is also included to filter out some of the nasty high-frequency noises. 
-
+<div class="row">
+</div>
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
@@ -88,7 +91,8 @@ the round edge rectangular design, and one for the “Wobble” word logo and th
 
 It took me one whole day from starXng to design the GUI to finish, and I really put a lot of work and effort as well as cra-smanship into it, and I hope everyone else will be pleased by the looks of it as what I do.
 
-
+<div class="row">
+</div>
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
@@ -148,5 +152,5 @@ I made this song using the wobble chords effects generated from the Wobbler. You
     }());
     </script>
 </body>
-
+<section id="BodyPart1" markdown="1">
 For detail explation of the algorithm and specs, please visit the [Wobbler repo](http://github.com/Tristar10/MU45-Wobbler-Plugin) to see the source code, python visualization, and my technical report.
