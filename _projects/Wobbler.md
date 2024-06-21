@@ -3,7 +3,7 @@ layout: page
 title: Wobbler-A VST/AU Plugin that makes your sound wobble.
 description: This effect plugin is meant to create WObble Chords/Bass in music.
 img: assets/img/Cover.png
-importance: 2
+importance: 1
 category: work
 ---
 
@@ -46,20 +46,47 @@ Starting off, what is Wobble and why make a plugin for this purpose only? I am a
     }());
     </script>
 </body>
+<div class="caption">
+    Here's the track that defined wobble effect in Future House: Momentum
+</div>
+
+I have been using Xfer Records's LFOTool for quite a while to create the wobble effects. However, the plugin although very versatile, it is also very complicated. Therefore I wanted to make a straighHorward, simple yet useful plugin to create the effect of wobble on any instruments. This could be synths, bass, leads, or even other samples like vocals.
 
 <div class="row">
     <div class="col-sm-4 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/EQ.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-    <div class="col-sm-8 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/EQSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+        {% include figure.liquid loading="eager" path="assets/img/LFOTool.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
 <div class="caption">
-    Above are the GUI and the signal flow diagram of the EQ Plugin.
+    Xfer's LFOTool's GUI. Very complicated, but some of the functions are redundant for my use case.
 </div>
 
-Here's a clip that I use the plugin in production: In this track, the chorus is bass boosted using the low shelf below 100Hz, and a sweeping effect is created in the chorus using a notch boost combined with an automation curve.
+To start with, the plugin is essentially two gains per channel that were modulated by a pair of LFOs (Low-Frequency Oscillators), and then the mix between the dry and wet signals could be adjusted to produce an optimal effect. Moreover, a low pass filter is also included to filter out some of the nasty high-frequency noises. 
+
+<div class="row">
+    <div class="col-sm-4 mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/WobblerSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+</div>
+<div class="caption">
+    The signal flow diagram of Wobbler
+</div>
+
+I had some thoughts when creating the GUI: I first layout the sliders, buVons, and visualizer for the plugin. I grouped the speed, attack, and high cut on the top right corner, because they are they define the shape of the waveform and the frequency spectrum. The mix knob is on its separate to the right, like the design on the plugin `kickstart`. The rate sliders, BPM label and buVons are down one row. It is in a symmetrical design for beVer looks. After All this finished, I looked for a background picture to start the design. I came across this blue, wavy looking paVern, that reminds me of the word “wobble”. I used Photoshop to create different layers: one for the background, one for the sliders’ region with 
+the round edge rectangular design, and one for the “Wobble” word logo and the bars in between the sliders to separate their region. I changed a lot of opacity, and blending with shadow, glow, and the background was done. I also changed the colors of the sliders and buVons, so they matched the color scheme, I even went into the detail of changed the RGB values of the color to fine tune them. The color of the rails, knobs, text, textbox background of the slider, and the color of the textbox text, textbox background, also the color of the text of the text-button and its background, as all been customized.
+
+It took me one whole day from starXng to design the GUI to finish, and I really put a lot of work and effort as well as cra-smanship into it, and I hope everyone else will be pleased by the looks of it as what I do.
+
+<div class="row">
+    <div class="col-sm-4 mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/Wobbler.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+</div>
+<div class="caption">
+    The GUI of Wobbler
+</div>
+
+
 
 <div class="row">
     <div class="col-sm mt-3 mt-md-0">
@@ -71,68 +98,38 @@ Here's a clip that I use the plugin in production: In this track, the chorus is 
     </div>
 </div>
 
+I made this song using the wobble chords effects generated from the Wobbler. You can find the video of this on [the Wobbler repo](https://github.com/Tristar10/MU45-Wobbler-Plugin)
 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
+</head>
+<body>
+  <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1853392689&color=%23525764&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/james-yu-38183882" title="Tristar" target="_blank" style="color: #cccccc; text-decoration: none;">Tristar</a> · <a href="https://soundcloud.com/james-yu-38183882/citypop-future-bass-vocaloid-commission-track" title="Citypop &amp; Future Bass &amp; VOCALOID commission track" target="_blank" style="color: #cccccc; text-decoration: none;">Citypop &amp; Future Bass &amp; VOCALOID commission track</a></div>
+    <script src="https://w.soundcloud.com/player/api.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    (function(){
+      var widgetIframe = document.getElementById('sc-widget'),
+          widget       = SC.Widget(widgetIframe);
 
+      widget.bind(SC.Widget.Events.READY, function() {
+        widget.bind(SC.Widget.Events.PLAY, function() {
+          // get information about currently playing sound
+          widget.getCurrentSound(function(currentSound) {
+            console.log('sound ' + currentSound.get('') + 'began to play');
+          });
+        });
+        // get current level of volume
+        widget.getVolume(function(volume) {
+          console.log('current volume value is ' + volume);
+        });
+        // set new volume level
+        widget.setVolume(50);
+        // get the value of the current position
+      });
+    }());
+    </script>
+</body>
 
-This is a Chorous plugin that produces a "Chorous" effect on a signal. This is by using a comb filter and a slight delay to create a "stack" of sound that simlate multiple people singing, or multiple instruments playing, etc. Again, I have given the user full control of the parameters. It is worth mentioning that the two dB sliders are actual linear dB gain, rather than a traditional exponential gain.
-
-<div class="row">
-    <div class="col-sm-9 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/ChorousSFD.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-    <div class="col-sm-3 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/Chorous.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-</div>
-<div class="caption">
-    Above are the GUI and the signal flow diagram of the chorous Plugin.
-</div>
-
-This was my first time messing with a custom background so I went nuts on it and picked the most brainrot picture I could find in my album.
-
-Here's a clip that I use the plugin in production: I used the chorus in my vocal. In the first part of the chorus, I cranked up the effects, so it feels like there is a vocal backing at a smaller volume sing from behind. Then, in the first part of the instrumental, I turn down the intensity of the vocal track, since now it is a vox instrument, and playing very quietly from behind. I don’t want to increase the burden of mixing, so I temporarily turned down the intensity. But, on the second part of the instrumental, I pushed the vox to a higher volume so it’s now a supplement of the leading instrument. Therefore, I turned the intensity back up, so it now sounds more spatial. Even though the parameters of the two parts that implemented the chorus are pretty much the same, they are for different purposes.
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-            {% include audio.liquid path="assets/audio/Chorous.mp3" controls=true %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
-
-
-
-
-This is a delay plugin that is supposed to create a delay effect, which is similar to what is perceived as echoes. The user have the ability to control the decay time, feedback strength, wet and dry gain, as well as a built in low pass filter. The user can also enter the BPM and select the presets that I found most useful.
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/Delay.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
-
-<div class="caption">
-    Above is the GUI of the delay Plugin.
-</div>
-
-The ecological example is where I used the delay in my most used scenario: mixing vocals. In this song (I also made the instrumental part), the first intro vocals, with the low pass enabled, had a ¼ delay. All the rest of the vocals are dry vocals, which I used my delay effect and stock reverb with around 25% sends to create wet, mixed vocals. I also added the delay to my rhythm guitar track, which is a common pracEce in playing/mixing the guitar. I would say I prefer this delay over my big, fat, over complicated stock delay plugin. Since I compose with my tiny laptop, my screen space is saved with this small plugin, and it has all the features I need.
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-            {% include audio.liquid path="assets/audio/Delay.wav" controls=true %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
+For detail explation of the algorithm and specs, please visit [the Wobbler repo](https://github.com/Tristar10/MU45-Wobbler-Plugin) to see the source code, python visualization, and my technical report.
