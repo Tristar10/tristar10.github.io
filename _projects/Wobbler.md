@@ -89,7 +89,7 @@ I had some thoughts when creating the GUI: I first layout the sliders, buVons, a
 the round edge rectangular design, and one for the “Wobble” word logo and the bars in between the sliders to separate their region. I changed a lot of opacity, and blending with shadow, glow, and the background was done. I also changed the colors of the sliders and buVons, so they matched the color scheme, I even went into the detail of changed the RGB values of the color to fine tune them. The color of the rails, knobs, text, textbox background of the slider, and the color of the textbox text, textbox background, also the color of the text of the text-button and its background, as all been customized.
 
 
-It took me one whole day from starXng to design the GUI to finish, and I really put a lot of work and effort as well as cra-smanship into it, and I hope everyone else will be pleased by the looks of it as what I do.
+It took me one whole day from starting to design the GUI to finish, and I really put a lot of work and effort as well as cra-smanship into it, and I hope everyone else will be pleased by the looks of it as what I do.
 
 <div class="row">
 </div>
@@ -107,17 +107,6 @@ It took me one whole day from starXng to design the GUI to finish, and I really 
     The GUI of Wobbler
 </div>
 
-
-
-<div class="row">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-            {% include audio.liquid path="assets/audio/EQ.wav" controls=true %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
 
 I made this song using the wobble chords effects generated from the Wobbler. You can find the video of this on the [Wobbler repo](http://github.com/Tristar10/MU45-Wobbler-Plugin)
 
@@ -153,4 +142,6 @@ I made this song using the wobble chords effects generated from the Wobbler. You
     </script>
 </body>
 <section id="BodyPart1" markdown="1">
+
+
 For detail explation of the algorithm and specs, please visit the [Wobbler repo](http://github.com/Tristar10/MU45-Wobbler-Plugin) to see the source code, python visualization, and my technical report.
