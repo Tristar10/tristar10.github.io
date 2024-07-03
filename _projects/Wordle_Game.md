@@ -2,7 +2,7 @@
 layout: page
 title: JAVAFX Wordle Game
 description: A replica game of the NYT's Wordle to solve some addiction issue
-img: assets/img/Cover.png
+img: assets/img/nyt_gui.png
 importance: 1
 category: work
 ---
@@ -39,8 +39,9 @@ The way we developed this APP is that we first start with creating the command-l
     <div class="col-sm mt-3 mt-md-0">
     </div>
     <div class="col-sm-6 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/nyt_gui.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
+        {% include figure.liquid loading="eager" path="assets/img/wordle_structure.png" title="example image" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
     <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
+
