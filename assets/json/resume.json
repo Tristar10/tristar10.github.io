@@ -75,7 +75,9 @@
       "startDate": "2021-08-20",
       "endDate": "2025-05-20",
       "GPA": "3.7",
-      "courses": ["Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development, etc."]
+      "courses": [
+        "Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development, etc."
+      ]
     }
   ],
   "awards": [
@@ -125,30 +127,19 @@
       "name": "Programming",
       "level": "Expert",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "C/C++",
-        "Java",
-        "Python"
-      ]
+      "keywords": ["C/C++", "Java", "Python"]
     },
     {
       "name": "Computer Aided Design",
       "level": "Beginner",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "Solidworks",
-        "Fusion 360"
-      ]
+      "keywords": ["Solidworks", "Fusion 360"]
     },
     {
       "name": "Electrical related skills",
       "level": "Advanced",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "EDA/PCB design software like Ultiboard and Multisim",
-        "Soldering",
-        "Graphing using Python"
-      ]
+      "keywords": ["EDA/PCB design software like Ultiboard and Multisim", "Soldering", "Graphing using Python"]
     }
   ],
   "languages": [
@@ -172,53 +163,27 @@
     {
       "name": "Music",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Music Production",
-        "DJing",
-        "Music Analysis",
-        "Instrumental Performance",
-        "Effect Plugins Programming"
-      ]
+      "keywords": ["Music Production", "DJing", "Music Analysis", "Instrumental Performance", "Effect Plugins Programming"]
     },
     {
       "name": "Automotive",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Car Culture",
-        "Car Maintenance",
-        "Car Modification",
-        "Engineering and Retrofits",
-        "Drive/AutoX/Circuit Racing"
-      ]
+      "keywords": ["Car Culture", "Car Maintenance", "Car Modification", "Engineering and Retrofits", "Drive/AutoX/Circuit Racing"]
     },
     {
       "name": "Japanese Culture",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Anime",
-        "VOCALOID",
-        "J-Pop",
-        "Car Culture"
-      ]
+      "keywords": ["Anime", "VOCALOID", "J-Pop", "Car Culture"]
     },
     {
       "name": "Photography/Videography",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Photography",
-        "Videography",
-        "Photo Editing",
-        "Video Editing/Production"
-      ]
+      "keywords": ["Photography", "Videography", "Photo Editing", "Video Editing/Production"]
     },
     {
       "name": "Gaming",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Racing Games",
-        "Rhythm Games",
-        "Overwatch"
-      ]
+      "keywords": ["Racing Games", "Rhythm Games", "Overwatch"]
     }
   ]
 }
