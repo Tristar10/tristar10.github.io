@@ -4,7 +4,6 @@ permalink: /cv/
 title: CV
 nav: true
 nav_order: 5
-cv_pdf: haizhou_yu_resume.pdf
 description: Here is my personal resume/cv
 toc:
   sidebar: left
