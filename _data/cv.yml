@@ -6,92 +6,73 @@
     - name: Date of Birth
       value: 19th February 2003
     - name: Languages
-      value: English, Chinese, Japanese
+      value: Chinese (native), English (fluent), Japanese (beginner)
 
 - title: Education
   type: time_table
   contents:
-    - title: Undergraduate - Bachelor's Degree
+    - title: Bachelor of Science, Computer Engineering
       institution: University of Virginia, Charlottesville VA, United States
-      year: 2025
+      year: 2021 - 2025
       description:
-        - Description 1.
-        - Description 2.
-        - title: Description 3.
-          contents:
-            - Sub-description 1.
-            - Sub-description 2.
-    - title: Federal teaching diploma
-      institution: Eidgenössische Technische Hochschule, Zurich, Switzerland
-      year: 1900
-      description:
-        - Description 1.
-        - Description 2.
+        - "GPA: 3.7"
+        - "Focus areas: embedded, software, hardware and system engineering."
+        - "Courses: Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development."
 
 - title: Experience
   type: time_table
   contents:
-    - title: Professor of Theoretical Physics
-      institution: Institute for Advanced Study, Princeton University
-      year: 1933 - 1955
+    - title: Diagnostic System Engineering Intern
+      institution: PACCAR Inc / Kenworth Truck Co.
+      year: 2024
       description:
-        - Description 1.
-        - Description 2.
-        - title: Description 3.
-          contents:
-            - Sub-description 1.
-            - Sub-description 2.
-    - title: Visiting Professor
-      institution: California Institute of Technology, Pasadena, California, US
-      year: 1933
+        - Collected and handled diagnostic data; wrote Python scripts to automate file handling.
+        - Fixed bugs and developed new content for the DAVIE 4 diagnostic software using the Bosch Grade-X IDE.
+        - Worked in an agile team, taking part in Scrum, triage and other ceremonies across the application life cycle.
+    - title: Computer Science Teaching Assistant
+      institution: University of Virginia
+      year: 2022 - 2025
       description:
-        - Description 1.
-        - Description 2.
-
-    - title: Director
-      institution: Kaiser Wilhelm Institute for Physics, Berlin, Germany.
-      year: 1917-1933
-
-    - title: Professor of Theoretical Physics
-      institution: Karl-Ferdinand University, Prague, Czechoslovakia
-      year: 1911 - 1917
+        - TA for Computer Systems and Organizations I and II (assembly, machine code, page tables, C/C++, caches, TLBs, pipelines).
+        - Held office hours for homework and conceptual questions; graded and helped improve course structure and content.
+    - title: Algorithm Engineering Intern
+      institution: Malong Technologies
+      year: 2023
       description:
+        - Explored LLM capabilities with LangChain and fine-tuning, adapting models for educational scenarios.
+        - Built a LangChain-GLM tool that turned a PDF into a knowledge base, producing an AI guide to the university.
+    - title: Marketing Managing Intern
+      institution: Intellifusion
+      year: 2023
+      description:
+        - Investigated the business side of AI-enhanced smart city systems.
+        - Produced technical marketing materials for customers about AI-enhanced products.
 
-    - title: Associate Professor of Theoretical Physics
-      institution: University of Zurich, Zurich, Switzerland
-      year: 1909 - 1911
-
-- title: Open Source Projects
+- title: Projects
   type: time_table
   contents:
-    - title: <a href="https://github.com/alshedivat/al-folio">al-folio</a>
-      year: 2015-now
-      description: A beautiful, simple, clean, and responsive Jekyll theme for academics.
+    - title: <a href="/projects/Wobbler/">Wobbler</a>
+      description: A VST/AU effect plugin for wobble chords and bass, built in C++ with JUCE.
+    - title: <a href="/projects/1_project%20copy/">AU/VST effects plugin collection</a>
+      description: Home-made audio effect plugins for music production.
+    - title: <a href="/projects/Wordle_Game/">JavaFX Wordle Game</a>
+      description: A Wordle replica built as a group project for CS 3140 Software Development.
 
 - title: Honors and Awards
   type: time_table
   contents:
-    - year: 1921
+    - year: 2018
       items:
-        - Nobel Prize in Physics
-        - Matteucci Medal
-    - year: 2029
-      items:
-        - Max Planck Medal
+        - Soong Ching Ling Scholarship, Ministry of Education of the People's Republic of China
 
-- title: Academic Interests
-  type: nested_list
+- title: Skills
+  type: list
   contents:
-    - title: Topic 1.
-      items:
-        - Description 1.
-        - Description 2.
-    - title: Topic 2.
-      items:
-        - Description 1.
-        - Description 2.
+    - "<u>Programming:</u> C/C++, Java, Python"
+    - "<u>Electrical:</u> EDA/PCB design (Ultiboard, Multisim), soldering"
+    - "<u>CAD:</u> SolidWorks, Fusion 360"
 
 - title: Other Interests
   type: list
   contents:
-    - <u>Hobbies:</u> Hobby 1, Hobby 2, etc.
+    - "<u>Hobbies:</u> music production and DJing, cars and motorsport, photography and videography, Japanese culture, gaming"
