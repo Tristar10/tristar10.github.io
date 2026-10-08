@@ -7,11 +7,9 @@ importance: 1
 category: work
 ---
 
-<!-- TODO(Haizhou): one line on the car this runs on and why you wanted it. -->
-
 [OpenHaldex-S3](https://github.com/meatro/OpenHaldex-S3) is an open-source all-wheel-drive controller for Haldex-equipped VW and transverse Audi cars. It runs on an off-the-shelf ESP32-S3 board and plugs in inline at the factory Haldex connector. From there it can pass the car's CAN traffic through untouched, or rewrite selected signals to ask the Haldex coupling for a different amount of lock. A built-in web UI handles setup, lock maps, diagnostics and over-the-air updates.
 
-I built one for my car, then forked the firmware and spent a stretch adding the things I wanted: easier flashing, live telemetry into RaceChrono, a few track-day automations, and a tool for putting the data on top of driving video. My fork is at [Tristar10/OpenHaldex-S3](https://github.com/Tristar10/OpenHaldex-S3).
+I built one for my 2019 Audi TT quattro, then forked the firmware and spent a stretch adding the things I wanted: easier flashing, live telemetry into RaceChrono, a few track-day automations, and a tool for putting the data on top of driving video. My fork is at [Tristar10/OpenHaldex-S3](https://github.com/Tristar10/OpenHaldex-S3).
 
 ## The hardware
 
