@@ -39,19 +39,26 @@ Team: Derek Hansen, Sriya Gandikota, Nyla Rose Gordon-Crocker, John Murphy, Haiz
 
 In the earlier small-airport version, each aircraft's route was hard-coded. That works for one runway, but it falls apart once there are two runways, several taxiways and gates, because every new route means new code.
 
-I rebuilt the aircraft control around path data that lives in the scene instead of in the script:
+I rebuilt the aircraft controller, `SimplePlaneCommander` in `PlaneCommander.cs`, around path data that lives in the scene instead of in the script.
 
-- **Paths are GameObjects.** Each movement path is a parent GameObject holding an ordered list of waypoint transforms, so a path is laid out and adjusted in the Unity editor rather than typed in as coordinates.
-- **`PlaneCommander.cs` builds routes from them.** The ATC logic assembles a route for landing, takeoff, holding or taxiing out of those paths when the command comes in.
-- **Data and control are separate.** The existing queueing and movement logic stayed intact; it just runs on the more flexible path data, so adding a runway or a taxiway is a scene change, not a rewrite.
+**Paths are GameObjects.** Each plane gets five path parents in the Inspector: holding, landing, ground (rollout to the gate area), taxi to runway, and takeoff. Each one is an empty GameObject whose children are the waypoints in order, so a route is laid out and dragged around in the Unity editor rather than typed in as coordinates. Airborne paths are handed to the flight guidance (the SparseDesign ControlledFlight path follower) as a list of objects, with the holding pattern set to loop. Ground paths are read once at start into lists of positions.
 
-I set up that node and waypoint structure, and Derek built on it to add the runway and taxiway navigation, with A\* shortest-path routing so aircraft taxi dynamically between runways and gates.
+**Each plane runs a small life cycle:**
 
-I also made the plane-control interface: a floating panel in VR with buttons you press with the controllers to issue clearances.
+1. **Holding.** Every plane starts on the looping holding path and joins a shared landing queue, sorted by a per-plane priority (lower goes first).
+2. **Landing.** When cleared, the plane flies to an entry fix placed at the first landing waypoint, then switches onto the landing path.
+3. **Rollout and taxi.** Once it reaches the stop point on the runway, it leaves flight mode: the guidance is switched off, the rigidbody goes kinematic, and the plane drives along the ground waypoints itself, turning toward each one at a set turn rate and speed.
+4. **Takeoff queue.** At the end of the ground path it joins a takeoff queue. When cleared, it taxis to the runway, waits two seconds, switches flight guidance back on and follows the takeoff path out.
+
+**One plane holds ATC authority.** The landing and takeoff queues are static, so every plane shares them, and exactly one plane instance (the one with the lowest instance ID) owns the controls and runs the three ATC commands: `ATC_ClearNextForLanding`, `ATC_ClearNextForTakeoff` and `ATC_ReassertHolding`, which sends every airborne plane back to holding and rebuilds the landing queue. Those three public methods are the whole control surface. Keyboard keys call them during testing, and the VR panel and the voice pipeline call the same three.
+
+**Data and control are separate.** Because the routes are scene data, adding a runway or a taxiway is a scene change, not a rewrite of the controller. I set up that node and waypoint structure, and Derek built on it to add the runway and taxiway navigation, with A\* shortest-path routing so aircraft taxi dynamically between runways and gates.
+
+I also made the plane-control interface: a floating panel in VR with buttons you press with the controllers to issue those clearances.
 
 ## Voice commands
 
-The other way to control traffic is to talk. Holding a controller button (or the spacebar) records the microphone on the Quest 3, a local whisper.cpp model transcribes it, and a local Qwen3 1.7B model turns the transcript into a strict JSON command that calls straight into `PlaneCommander.cs`. Everything runs locally, with end-to-end latency under three seconds.
+The other way to control traffic is to talk. Holding a controller button (or the spacebar) records the microphone on the Quest 3, a local whisper.cpp model transcribes it, and a local Qwen3 1.7B model turns the transcript into a strict JSON command that calls the same `PlaneCommander` methods as the buttons. Everything runs locally, with end-to-end latency under three seconds.
 
 <div class="row">
     <div class="col-sm-8 mt-3 mt-md-0">
