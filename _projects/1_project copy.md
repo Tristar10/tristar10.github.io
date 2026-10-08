@@ -13,8 +13,6 @@ Here I will introduce you to all of the plugins that I made using this platform,
 
 Again, huge thanks to professor Dahl for kickstarting all of these. This is undoubtly the best course I've ever taken in UVA.
 
-
-
 This is an EQ plugin that tunes the sound of a sample/instrument. It takes in a signal than modulates the digital filters' parameters according to the user input to change the effect of the sound. The plugin gives the users many controls like the breakpoint frequency of the filters, the Q value of the filters and the gain of the filters. The UI is configured logically and intuitively so anyone can use without any problems. It also has four built-in preset buttons that people might found them handy in music production.
 
 <div class="row">
@@ -40,9 +38,6 @@ Here's a clip that I use the plugin in production: In this track, the chorus is 
     <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
-
-
-
 
 This is a Chorous plugin that produces a "Chorous" effect on a signal. This is by using a comb filter and a slight delay to create a "stack" of sound that simlate multiple people singing, or multiple instruments playing, etc. Again, I have given the user full control of the parameters. It is worth mentioning that the two dB sliders are actual linear dB gain, rather than a traditional exponential gain.
 
@@ -71,9 +66,6 @@ Here's a clip that I use the plugin in production: I used the chorus in my vocal
     <div class="col-sm mt-3 mt-md-0">
     </div>
 </div>
-
-
-
 
 This is a delay plugin that is supposed to create a delay effect, which is similar to what is perceived as echoes. The user have the ability to control the decay time, feedback strength, wet and dry gain, as well as a built in low pass filter. The user can also enter the BPM and select the presets that I found most useful.
 

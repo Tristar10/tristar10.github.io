@@ -20,8 +20,7 @@ selected_papers: true # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-
-Hello, and welcome to my portfolio page! It doesn't matter who you are or why you are here, but I do hope by browsing through this website, you can learn more about me. 
+Hello, and welcome to my portfolio page! It doesn't matter who you are or why you are here, but I do hope by browsing through this website, you can learn more about me.
 
 Here's a quick introduction in case you don't know about me yet: I am a first generation Bachelor's Degree student studying Computer Engineering in University of Virginia, and expected to graduate in 2025. I have a very deep interest that spread across the whole computer-related field. I have experiences ranging from software engineering, hardware engineering to embedded engineering, system engineering and more. Beside tackling with computer systems, I also have a strong interest in mechanics. My main field of interests includes but not limit to Robotics, mechatronics, automotive engineering, ADAS/autonomous vehicles, embedded development and software engineering.
 

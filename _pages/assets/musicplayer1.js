@@ -1,51 +1,34 @@
 var audio = document.getElementById("audio-player");
 
-$(document).ready(function() {
-  $("#play-button").click(function() {
+$(document).ready(function () {
+  $("#play-button").click(function () {
     if ($(this).hasClass("unchecked")) {
-      $(this)
-        .addClass("play-active")
-        .removeClass("play-inactive")
-        .removeClass("unchecked");
-      $(".info-two")
-        .addClass("info-active");
-      $("#pause-button")
-        .addClass("scale-animation-active");
+      $(this).addClass("play-active").removeClass("play-inactive").removeClass("unchecked");
+      $(".info-two").addClass("info-active");
+      $("#pause-button").addClass("scale-animation-active");
       $(".waves-animation-one, #pause-button, .seek-field, .volume-icon, .volume-field, .info-two").show();
       $(".waves-animation-two").hide();
-      $("#pause-button")
-        .children('.icon')
-        .addClass("icon-pause")
-        .removeClass("icon-play");
-      setTimeout(function() {
+      $("#pause-button").children(".icon").addClass("icon-pause").removeClass("icon-play");
+      setTimeout(function () {
         $(".info-one").hide();
       }, 400);
       audio.play();
       audio.currentTime = 0;
     } else {
-      $(this)
-        .removeClass("play-active")
-        .addClass("play-inactive")
-        .addClass("unchecked");
-      $("#pause-button")
-        .children(".icon")
-        .addClass("icon-pause")
-        .removeClass("icon-play");
-      $(".info-two")
-        .removeClass("info-active");
+      $(this).removeClass("play-active").addClass("play-inactive").addClass("unchecked");
+      $("#pause-button").children(".icon").addClass("icon-pause").removeClass("icon-play");
+      $(".info-two").removeClass("info-active");
       $(".waves-animation-one, #pause-button, .seek-field, .volume-icon, .volume-field, .info-two").hide();
       $(".waves-animation-two").show();
-      setTimeout(function() {
+      setTimeout(function () {
         $(".info-one").show();
       }, 150);
       audio.pause();
       audio.currentTime = 0;
     }
   });
-  $("#pause-button").click(function() {
-    $(this).children(".icon")
-      .toggleClass("icon-pause")
-      .toggleClass("icon-play");
+  $("#pause-button").click(function () {
+    $(this).children(".icon").toggleClass("icon-pause").toggleClass("icon-play");
 
     if (audio.paused) {
       audio.play();
@@ -53,14 +36,12 @@ $(document).ready(function() {
       audio.pause();
     }
   });
-  $("#play-button").click(function() {
-    setTimeout(function() {
-      $("#play-button").children(".icon")
-        .toggleClass("icon-play")
-        .toggleClass("icon-cancel");
+  $("#play-button").click(function () {
+    setTimeout(function () {
+      $("#play-button").children(".icon").toggleClass("icon-play").toggleClass("icon-cancel");
     }, 350);
   });
-  $(".like").click(function() {
+  $(".like").click(function () {
     $(".icon-heart").toggleClass("like-active");
   });
 });
@@ -86,12 +67,16 @@ function SeekBar() {
   seekbar.value = audio.currentTime;
 }
 
-audio.addEventListener("timeupdate", function() {
-  var duration = document.getElementById("duration");
-  var s = parseInt(audio.currentTime % 60);
-  var m = parseInt((audio.currentTime / 60) % 60);
-  duration.innerHTML = m + ':' + s;
-}, false);
+audio.addEventListener(
+  "timeupdate",
+  function () {
+    var duration = document.getElementById("duration");
+    var s = parseInt(audio.currentTime % 60);
+    var m = parseInt((audio.currentTime / 60) % 60);
+    duration.innerHTML = m + ":" + s;
+  },
+  false
+);
 
 Waves.init();
 Waves.attach("#play-button", ["waves-button", "waves-float"]);
