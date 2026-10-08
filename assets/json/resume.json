@@ -32,9 +32,7 @@
       "startDate": "2024-05-20",
       "endDate": "2024-08-09",
       "summary": "- Assisted on data collection and handling. Wrote Python scripts to automate file handling.\n- Participated in bug fixes and develop new content on the diagnostic software DAVIE 4, using Bosch Grade-X IDE \n- Learnt how application life-cycle works in an agile application development framework. Participated in all different meetings (Scrum, Triage, etc.) and made contributions to the team.",
-      "highlights": [
-        "Agile Application Development, Software Development Life Cycle (SDLC), Software Engineering, System Engineering"
-      ]
+      "highlights": ["Agile Application Development, Software Development Life Cycle (SDLC), Software Engineering, System Engineering"]
     },
     {
       "name": "University of Virginia",
@@ -42,9 +40,7 @@
       "startDate": "2022-08-20",
       "endDate": "2025-05-20",
       "summary": "- Teaching Assistant for Computer Systems and Organizations I and II. Topics included assembly, machine code, page tables, C/C++, cache, tlb, pipelines etc.\n- Hold office hours to answer both homework and also conceptual questions for students.\n- Participated in grading and meetings and provided many valuable advices to improve course structure/content",
-      "highlights": [
-        "Assembly, Computer Architecture, C/C++, Computer Systems"
-      ]
+      "highlights": ["Assembly, Computer Architecture, C/C++, Computer Systems"]
     },
     {
       "name": "Malong Technologies",
@@ -52,9 +48,7 @@
       "startDate": "2023-07-10",
       "endDate": "2023-08-15",
       "summary": "- Explored the abilities of different AI LLMs, and used different tools like Langchain, and Finetune, to see the possibilities of the models.\n- Worked on serval projects including training LLM and fine-tuning them to be more suitable to educational scenarios.\n - Eventually, I used the Langchain-GLM tool that parsed a pdf and makes it to a language network, and the AI becomes an encyclopedia for introducing my university.",
-      "highlights": [
-        "LLM, AI, CUDA, Pytorch"
-      ]
+      "highlights": ["LLM, AI, CUDA, Pytorch"]
     },
     {
       "name": "Intellifusion",
@@ -62,9 +56,7 @@
       "startDate": "2023-06-04",
       "endDate": "2023-07-14",
       "summary": "- Help investigated the business side of AI-enhancing smart city systems. Provided ideas on how could AI makes fusion into other systems that would be beneficial.\n- Learned about the AI-enhanced products, their unique side of application and technical background, then organized and produced technological marketing materials to customers. ",
-      "highlights": [
-        "AI, Multimedia Production, Business Analysis"
-      ]
+      "highlights": ["AI, Multimedia Production, Business Analysis"]
     }
   ],
   "volunteer": [
@@ -103,30 +95,19 @@
     {
       "name": "Wobbler: VST/AU wobble effect plugin",
       "summary": "An audio effect plugin for creating wobble chords and bass, built in C++ with JUCE/Projucer for a UVA music technology course.",
-      "highlights": [
-        "C++",
-        "JUCE",
-        "Digital Signal Processing"
-      ],
+      "highlights": ["C++", "JUCE", "Digital Signal Processing"],
       "url": "/projects/Wobbler/"
     },
     {
       "name": "AU/VST effects plugin collection",
       "summary": "A collection of home-made AU/VST audio effects for music production (MU45 course series).",
-      "highlights": [
-        "C++",
-        "JUCE",
-        "Audio Plugins"
-      ],
+      "highlights": ["C++", "JUCE", "Audio Plugins"],
       "url": "/projects/1_project%20copy/"
     },
     {
       "name": "JavaFX Wordle Game",
       "summary": "A replica of the NYT Wordle game, built as a group project for CS 3140 Software Development.",
-      "highlights": [
-        "Java",
-        "JavaFX"
-      ],
+      "highlights": ["Java", "JavaFX"],
       "url": "/projects/Wordle_Game/"
     }
   ],
@@ -135,30 +116,19 @@
       "name": "Programming",
       "level": "Expert",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "C/C++",
-        "Java",
-        "Python"
-      ]
+      "keywords": ["C/C++", "Java", "Python"]
     },
     {
       "name": "Computer Aided Design",
       "level": "Beginner",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "Solidworks",
-        "Fusion 360"
-      ]
+      "keywords": ["Solidworks", "Fusion 360"]
     },
     {
       "name": "Electrical related skills",
       "level": "Advanced",
       "icon": "fa-solid fa-hashtag",
-      "keywords": [
-        "EDA/PCB design software like Ultiboard and Multisim",
-        "Soldering",
-        "Graphing using Python"
-      ]
+      "keywords": ["EDA/PCB design software like Ultiboard and Multisim", "Soldering", "Graphing using Python"]
     }
   ],
   "languages": [
@@ -182,53 +152,27 @@
     {
       "name": "Music",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Music Production",
-        "DJing",
-        "Music Analysis",
-        "Instrumental Performance",
-        "Effect Plugins Programming"
-      ]
+      "keywords": ["Music Production", "DJing", "Music Analysis", "Instrumental Performance", "Effect Plugins Programming"]
     },
     {
       "name": "Automotive",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Car Culture",
-        "Car Maintenance",
-        "Car Modification",
-        "Engineering and Retrofits",
-        "Drive/AutoX/Circuit Racing"
-      ]
+      "keywords": ["Car Culture", "Car Maintenance", "Car Modification", "Engineering and Retrofits", "Drive/AutoX/Circuit Racing"]
     },
     {
       "name": "Japanese Culture",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Anime",
-        "VOCALOID",
-        "J-Pop",
-        "Car Culture"
-      ]
+      "keywords": ["Anime", "VOCALOID", "J-Pop", "Car Culture"]
     },
     {
       "name": "Photography/Videography",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Photography",
-        "Videography",
-        "Photo Editing",
-        "Video Editing/Production"
-      ]
+      "keywords": ["Photography", "Videography", "Photo Editing", "Video Editing/Production"]
     },
     {
       "name": "Gaming",
       "icon": "fa-solid fa-tag",
-      "keywords": [
-        "Racing Games",
-        "Rhythm Games",
-        "Overwatch"
-      ]
+      "keywords": ["Racing Games", "Rhythm Games", "Overwatch"]
     }
   ]
 }
