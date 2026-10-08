@@ -145,7 +145,8 @@
         "PCB and embedded firmware for real-time MIDI processing with 17 inputs",
         "Enclosure modeled in 3D CAD and 3D printed",
         "Integrated hardware, firmware and GUI with latency under 50 ms"
-      ]
+      ],
+      "url": "/projects/midicreator/"
     },
     {
       "name": "F1TENTH Autonomous Racing Platform",

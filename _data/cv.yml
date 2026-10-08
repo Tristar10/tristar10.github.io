@@ -75,7 +75,7 @@
     - title: Real-Time Embedded System (TM4C123G, C, RTOS)
       year: "2026"
       description: A multithreaded embedded game on the ARM Cortex-M4 TM4C123G with real-time joystick input, LCD rendering, collision detection and asynchronous state updates.
-    - title: Smart MIDI Controller (Embedded Systems Capstone)
+    - title: '<a href="/projects/midicreator/">Smart MIDI Controller (Embedded Systems Capstone)</a>'
       year: "2024"
       description: Led a 5-person team to design and build a custom MIDI hardware controller for beginner music production on a Raspberry Pi Pico.
     - title: F1TENTH Autonomous Racing Platform
