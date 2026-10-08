@@ -163,7 +163,20 @@ The team was Tong Zhou, Jinhong Zhao, Jennifer Shern, Wanghaotian Zhang and me. 
     Team roles from our proposal, with the planned sequence of work underneath.
 </div>
 
-We ran the semester off a Gantt chart and checked it every week. The PCBs were designed by October 15th and arrived October 25th. The case design was done before the end of November. Integration took longer than planned, but because the earlier phases finished early we still had room to test, and every deadline was met. The prototype cost $511.99 with two rounds of printing, re-orders and shipping, a little over our $500 budget. The parts in the final unit came to $222.21, almost half of it 3D printing.
+We ran the semester off a Gantt chart and checked it every week. The PCBs were designed by October 15th and arrived October 25th. The case design was done before the end of November. Integration took longer than planned, but because the earlier phases finished early we still had room to test, and every deadline was met. The prototype cost $511.99 with two rounds of printing, re-orders and shipping, a little over our $500 budget. Most of it went to 3D printing:
+
+| Item                                                                |        Cost |
+| :------------------------------------------------------------------ | ----------: |
+| 3D printing (JLC3DP), first version                                 |     $154.99 |
+| 3D printing (JLC3DP), second version                                |     $144.48 |
+| Adafruit (Pico, DVI sock, five-way switches, headers, cables)       |      $79.52 |
+| 10.1" HDMI screen                                                   |      $59.48 |
+| Screen and USB cabling (flat flex HDMI, USB splitters and adapters) |      $42.30 |
+| Extra Pico board, mini tactile switches                             |      $15.47 |
+| PCBs (JLCPCB, 5 main + 5 button boards, shipped)                    |      $15.75 |
+| **Total**                                                           | **$511.99** |
+
+Only about one of each part ended up in the final unit, and those parts came to $222.21, almost half of it 3D printing. In volume, a molded case and fewer cables would bring that down a lot.
 
 ## What I'd do next
 
