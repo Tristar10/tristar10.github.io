@@ -1,15 +1,15 @@
 {
   "basics": {
     "name": "Haizhou Yu",
-    "label": "B.S. Computer Engineering",
+    "label": "Technical Support Engineer at Streamax · M.Eng. Computer Engineering, University of Virginia",
     "image": "",
     "email": "szz5ft@virginia.edu",
     "phone": "",
     "url": "linktr.ee/tristar10",
-    "summary": "I am a computer engineering student specializing in software development and embedded engineering. I also have vital interests, foundations, and experiences in the robotics, aerospace, automotive, and mechanics industries. I am keen to combine computer systems into those industries to create innovative products and solutions. I am also capable of multimedia production and am an independent music producer.",
+    "summary": "I am a computer engineer specializing in embedded systems, vehicle software and autonomous racing, with a B.S. and M.Eng. in Computer Engineering from the University of Virginia. I bring experience across the automotive, robotics and aerospace industries, and I like combining computer systems with those fields to build innovative products. I am also an independent music producer and build my own audio plugins.",
     "location": {
-      "city": "Charlottesville",
-      "region": "Virginia",
+      "city": "Houston",
+      "region": "Texas",
       "countryCode": "US"
     },
     "profiles": [
@@ -27,20 +27,39 @@
   },
   "work": [
     {
-      "name": "PACCAR Inc/Kenworth Truck Co.",
+      "name": "Streamax America LLC",
+      "position": "Technical Support Engineer",
+      "location": "Houston, Texas",
+      "startDate": "2026-07",
+      "endDate": "Present",
+      "summary": "- Perform on-site quality control and functional validation of recorders, identifying abnormal product and escalating technical issues.\n- Troubleshoot product hardware, software and system-level behavior while building working knowledge of MDVR architecture, vehicle integration and CAN-based functionality.\n- Developed a Chrome extension for dashcam onboarding that gives contextual guidance and configuration instructions inside the device's local web interface.",
+      "highlights": ["MDVR, CAN, Vehicle Integration, Chrome Extensions"]
+    },
+    {
+      "name": "Cavalier Autonomous Racing",
+      "position": "Vehicle Dynamics and Control Engineer, Motion Planning Engineer",
+      "location": "Charlottesville, Virginia",
+      "startDate": "2025-05",
+      "endDate": "2026-05",
+      "summary": "- Developed new vehicle tire dynamics models (tire slip, traction limits) from telemetry recorded over 10+ laps to improve simulation fidelity.\n- Responsible for simulation development; implemented an MCAP overlay player to overlay recorded data on simulation data.\n- Developed Python tools for GGV diagram generation and raceline speed optimization to support autonomous racing simulation.\n- Took part in 14 days of testing at WeatherTech Raceway Laguna Seca, collecting telemetry and validating vehicle control models.",
+      "highlights": ["Vehicle Dynamics, Simulation, Motion Planning, Python"]
+    },
+    {
+      "name": "PACCAR Inc",
       "position": "Diagnostic System Engineering Intern",
-      "startDate": "2024-05-20",
-      "endDate": "2024-08-09",
-      "summary": "- Assisted on data collection and handling. Wrote Python scripts to automate file handling.\n- Participated in bug fixes and develop new content on the diagnostic software DAVIE 4, using Bosch Grade-X IDE \n- Learnt how application life-cycle works in an agile application development framework. Participated in all different meetings (Scrum, Triage, etc.) and made contributions to the team.",
-      "highlights": ["Agile Application Development, Software Development Life Cycle (SDLC), Software Engineering, System Engineering"]
+      "location": "Lewisville, Texas",
+      "startDate": "2024-05",
+      "endDate": "2024-08",
+      "summary": "- Automated diagnostic report downloads with Python Selenium, cutting manual collection effort by about 80%.\n- Helped build a sprint analysis dashboard using Power BI and DevOps data, improving team efficiency and feedback.\n- Developed a SQL + Power BI pipeline analyzing CAN DTC data for 10,000+ vehicles, improving diagnostic reporting and failure analysis.\n- Programmed the manufacturing sequence for a new vehicle architecture and moved the system to a new data model, improving efficiency by 50%.\n- Implemented features and resolved defects in the DAVIE4 diagnostic software, improving reliability with the next-generation vehicle architecture.\n- Worked in an agile SDLC, taking part in Scrum, triage and other team meetings.",
+      "highlights": ["Python, SQL, Power BI, CAN, Agile SDLC"]
     },
     {
       "name": "University of Virginia",
       "position": "Computer Science Teaching Assistant",
-      "startDate": "2022-08-20",
-      "endDate": "2025-05-20",
-      "summary": "- Teaching Assistant for Computer Systems and Organizations I and II. Topics included assembly, machine code, page tables, C/C++, cache, tlb, pipelines etc.\n- Hold office hours to answer both homework and also conceptual questions for students.\n- Participated in grading and meetings and provided many valuable advices to improve course structure/content",
-      "highlights": ["Assembly, Computer Architecture, C/C++, Computer Systems"]
+      "startDate": "2022-08",
+      "endDate": "2026-05",
+      "summary": "- Teaching assistant for Computer Systems and Organizations I and II and Computer Architecture (B.S.), and Embedded Systems Design (M.Eng.).\n- Held office hours for homework and conceptual questions; graded and helped improve course structure and content.",
+      "highlights": ["Assembly, Computer Architecture, C/C++, Embedded Systems"]
     },
     {
       "name": "Malong Technologies",
@@ -72,13 +91,28 @@
     {
       "institution": "University of Virginia",
       "location": "Charlottesville VA, U.S.",
-      "area": "Areas of studying: Embedded Engineering. Software Engineering, Hardware Engineering, System Engineering",
+      "area": "Computer Engineering · GPA 3.85",
+      "studyType": "Master of Engineering",
+      "startDate": "2025-08",
+      "endDate": "2026-05",
+      "courses": ["AI Hardware", "Advanced Embedded Systems", "Business & Technology Leadership of Engineers", "Wireless IoT"]
+    },
+    {
+      "institution": "University of Virginia",
+      "location": "Charlottesville VA, U.S.",
+      "area": "Computer Engineering · GPA 3.74 · Dean's List",
       "studyType": "Bachelor of Science",
-      "startDate": "2021-08-20",
-      "endDate": "2025-05-20",
-      "GPA": "3.7",
+      "startDate": "2021-08",
+      "endDate": "2025-05",
       "courses": [
-        "Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development, etc."
+        "Data Structures & Algorithms",
+        "Computer Systems",
+        "Software Development",
+        "Digital Logic Design",
+        "Embedded Programming",
+        "Cybersecurity",
+        "Computer Architecture",
+        "Autonomous Vehicles"
       ]
     }
   ],
@@ -92,6 +126,45 @@
     }
   ],
   "projects": [
+    {
+      "name": "Real-Time Embedded System (TM4C123G, C, RTOS)",
+      "startDate": "2026-01",
+      "endDate": "2026-05",
+      "summary": "A multithreaded embedded game on the ARM Cortex-M4 TM4C123G with real-time joystick input, LCD rendering, collision detection and asynchronous state updates.",
+      "highlights": [
+        "Concurrent RTOS tasks coordinated with semaphores and critical sections",
+        "PWM peripheral control, pseudorandom behavior, thread lifecycle management and deadlock prevention"
+      ]
+    },
+    {
+      "name": "Smart MIDI Controller (Embedded Systems Capstone)",
+      "startDate": "2024-12",
+      "endDate": "2024-12",
+      "summary": "Led a 5-person team to design and build a custom MIDI hardware controller for beginner music production on a Raspberry Pi Pico.",
+      "highlights": [
+        "PCB and embedded firmware for real-time MIDI processing with 17 inputs",
+        "Enclosure modeled in 3D CAD and 3D printed",
+        "Integrated hardware, firmware and GUI with latency under 50 ms"
+      ]
+    },
+    {
+      "name": "F1TENTH Autonomous Racing Platform",
+      "startDate": "2024-12",
+      "endDate": "2024-12",
+      "summary": "An autonomous control stack for a 1/10-scale racecar using ROS and LiDAR sensing.",
+      "highlights": [
+        "PID steering and velocity control for stable driving up to 20 km/h",
+        "Optimal raceline from track data",
+        "360-degree, 10 Hz LiDAR obstacle detection and avoidance"
+      ]
+    },
+    {
+      "name": "BLE Lost and Found Tagger (nRF52840)",
+      "startDate": "2024-01",
+      "endDate": "2024-05",
+      "summary": "A low-power BLE tracking device with NFC tap-to-connect for recovering lost personal items.",
+      "highlights": ["Embedded firmware for BLE communication and NFC proximity alerts"]
+    },
     {
       "name": "Wobbler: VST/AU wobble effect plugin",
       "summary": "An audio effect plugin for creating wobble chords and bass, built in C++ with JUCE/Projucer for a UVA music technology course.",
@@ -113,22 +186,25 @@
   ],
   "skills": [
     {
-      "name": "Programming",
-      "level": "Expert",
+      "name": "Programming and Embedded Systems",
       "icon": "fa-solid fa-hashtag",
-      "keywords": ["C/C++", "Java", "Python"]
+      "keywords": [
+        "C, C++, Python, Java, Assembly, Verilog, MATLAB",
+        "SPI, I2C, PWM, UART, STM32, J1939, CAN",
+        "ROS, BLE, NFC, LoRa, 802.11",
+        "HTML, JSON, YAML, XML, NumPy, Pandas, Linux, CMake"
+      ]
     },
     {
-      "name": "Computer Aided Design",
-      "level": "Beginner",
+      "name": "Engineering Tools",
       "icon": "fa-solid fa-hashtag",
-      "keywords": ["Solidworks", "Fusion 360"]
-    },
-    {
-      "name": "Electrical related skills",
-      "level": "Advanced",
-      "icon": "fa-solid fa-hashtag",
-      "keywords": ["EDA/PCB design software like Ultiboard and Multisim", "Soldering", "Graphing using Python"]
+      "keywords": [
+        "Power BI, SQL, Excel, data analytics",
+        "CANalyzer, dSPACE, ADAS",
+        "EDA, Multisim, Ultiboard",
+        "Fusion 360, CAD, 3D printing",
+        "Unity, game development, machine learning"
+      ]
     }
   ],
   "languages": [

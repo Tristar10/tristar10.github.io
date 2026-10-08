@@ -3,76 +3,105 @@
   contents:
     - name: Full Name
       value: Haizhou Yu
-    - name: Date of Birth
-      value: 19th February 2003
+    - name: Current Role
+      value: Technical Support Engineer, Streamax America (Houston, TX)
     - name: Languages
       value: Chinese (native), English (fluent), Japanese (beginner)
-
 - title: Education
   type: time_table
   contents:
+    - title: Master of Engineering, Computer Engineering
+      institution: University of Virginia, Charlottesville VA, U.S.
+      year: 2025 - 2026
+      description:
+        - GPA 3.85
+        - "Courses: AI Hardware, Advanced Embedded Systems, Business & Technology Leadership of Engineers, Wireless IoT"
     - title: Bachelor of Science, Computer Engineering
-      institution: University of Virginia, Charlottesville VA, United States
+      institution: University of Virginia, Charlottesville VA, U.S.
       year: 2021 - 2025
       description:
-        - "GPA: 3.7"
-        - "Focus areas: embedded, software, hardware and system engineering."
-        - "Courses: Data Structures and Algorithms, Computer Systems and Organizations, Cybersecurity, Embedded Software Development, Computer Architecture, Software Development."
-
+        - GPA 3.74 · Dean's List
+        - "Courses: Data Structures & Algorithms, Computer Systems, Software Development, Digital Logic Design, Embedded Programming, Cybersecurity, Computer Architecture, Autonomous Vehicles"
 - title: Experience
   type: time_table
   contents:
-    - title: Diagnostic System Engineering Intern
-      institution: PACCAR Inc / Kenworth Truck Co.
-      year: 2024
+    - title: Technical Support Engineer
+      institution: Streamax America LLC, Houston, Texas
+      year: 2026 - now
       description:
-        - Collected and handled diagnostic data; wrote Python scripts to automate file handling.
-        - Fixed bugs and developed new content for the DAVIE 4 diagnostic software using the Bosch Grade-X IDE.
-        - Worked in an agile team, taking part in Scrum, triage and other ceremonies across the application life cycle.
+        - Perform on-site quality control and functional validation of recorders, identifying abnormal product and escalating technical issues.
+        - Troubleshoot product hardware, software and system-level behavior while building working knowledge of MDVR architecture, vehicle integration and CAN-based functionality.
+        - Developed a Chrome extension for dashcam onboarding that gives contextual guidance and configuration instructions inside the device's local web interface.
+    - title: Vehicle Dynamics and Control Engineer, Motion Planning Engineer
+      institution: Cavalier Autonomous Racing, Charlottesville, Virginia
+      year: 2025 - 2026
+      description:
+        - Developed new vehicle tire dynamics models (tire slip, traction limits) from telemetry recorded over 10+ laps to improve simulation fidelity.
+        - Responsible for simulation development; implemented an MCAP overlay player to overlay recorded data on simulation data.
+        - Developed Python tools for GGV diagram generation and raceline speed optimization to support autonomous racing simulation.
+        - Took part in 14 days of testing at WeatherTech Raceway Laguna Seca, collecting telemetry and validating vehicle control models.
+    - title: Diagnostic System Engineering Intern
+      institution: PACCAR Inc, Lewisville, Texas
+      year: "2024"
+      description:
+        - Automated diagnostic report downloads with Python Selenium, cutting manual collection effort by about 80%.
+        - Helped build a sprint analysis dashboard using Power BI and DevOps data, improving team efficiency and feedback.
+        - Developed a SQL + Power BI pipeline analyzing CAN DTC data for 10,000+ vehicles, improving diagnostic reporting and failure analysis.
+        - Programmed the manufacturing sequence for a new vehicle architecture and moved the system to a new data model, improving efficiency by 50%.
+        - Implemented features and resolved defects in the DAVIE4 diagnostic software, improving reliability with the next-generation vehicle architecture.
+        - Worked in an agile SDLC, taking part in Scrum, triage and other team meetings.
     - title: Computer Science Teaching Assistant
       institution: University of Virginia
-      year: 2022 - 2025
+      year: 2022 - 2026
       description:
-        - TA for Computer Systems and Organizations I and II (assembly, machine code, page tables, C/C++, caches, TLBs, pipelines).
+        - Teaching assistant for Computer Systems and Organizations I and II and Computer Architecture (B.S.), and Embedded Systems Design (M.Eng.).
         - Held office hours for homework and conceptual questions; graded and helped improve course structure and content.
     - title: Algorithm Engineering Intern
       institution: Malong Technologies
-      year: 2023
+      year: "2023"
       description:
-        - Explored LLM capabilities with LangChain and fine-tuning, adapting models for educational scenarios.
-        - Built a LangChain-GLM tool that turned a PDF into a knowledge base, producing an AI guide to the university.
+        - Explored the abilities of different AI LLMs, and used different tools like Langchain, and Finetune, to see the possibilities of the models.
+        - Worked on serval projects including training LLM and fine-tuning them to be more suitable to educational scenarios.
+        - Eventually, I used the Langchain-GLM tool that parsed a pdf and makes it to a language network, and the AI becomes an encyclopedia for introducing my university.
     - title: Marketing Managing Intern
       institution: Intellifusion
-      year: 2023
+      year: "2023"
       description:
-        - Investigated the business side of AI-enhanced smart city systems.
-        - Produced technical marketing materials for customers about AI-enhanced products.
-
+        - Help investigated the business side of AI-enhancing smart city systems. Provided ideas on how could AI makes fusion into other systems that would be beneficial.
+        - Learned about the AI-enhanced products, their unique side of application and technical background, then organized and produced technological marketing materials to customers.
 - title: Projects
   type: time_table
   contents:
-    - title: <a href="/projects/Wobbler/">Wobbler</a>
-      description: A VST/AU effect plugin for wobble chords and bass, built in C++ with JUCE.
+    - title: Real-Time Embedded System (TM4C123G, C, RTOS)
+      year: "2026"
+      description: A multithreaded embedded game on the ARM Cortex-M4 TM4C123G with real-time joystick input, LCD rendering, collision detection and asynchronous state updates.
+    - title: Smart MIDI Controller (Embedded Systems Capstone)
+      year: "2024"
+      description: Led a 5-person team to design and build a custom MIDI hardware controller for beginner music production on a Raspberry Pi Pico.
+    - title: F1TENTH Autonomous Racing Platform
+      year: "2024"
+      description: An autonomous control stack for a 1/10-scale racecar using ROS and LiDAR sensing.
+    - title: BLE Lost and Found Tagger (nRF52840)
+      year: "2024"
+      description: A low-power BLE tracking device with NFC tap-to-connect for recovering lost personal items.
+    - title: '<a href="/projects/Wobbler/">Wobbler: VST/AU wobble effect plugin</a>'
+      description: An audio effect plugin for creating wobble chords and bass, built in C++ with JUCE/Projucer for a UVA music technology course.
     - title: <a href="/projects/1_project%20copy/">AU/VST effects plugin collection</a>
-      description: Home-made audio effect plugins for music production.
+      description: A collection of home-made AU/VST audio effects for music production (MU45 course series).
     - title: <a href="/projects/Wordle_Game/">JavaFX Wordle Game</a>
-      description: A Wordle replica built as a group project for CS 3140 Software Development.
-
+      description: A replica of the NYT Wordle game, built as a group project for CS 3140 Software Development.
 - title: Honors and Awards
   type: time_table
   contents:
     - year: 2018
       items:
         - Soong Ching Ling Scholarship, Ministry of Education of the People's Republic of China
-
 - title: Skills
   type: list
   contents:
-    - "<u>Programming:</u> C/C++, Java, Python"
-    - "<u>Electrical:</u> EDA/PCB design (Ultiboard, Multisim), soldering"
-    - "<u>CAD:</u> SolidWorks, Fusion 360"
-
+    - <u>Programming and Embedded Systems:</u> C, C++, Python, Java, Assembly, Verilog, MATLAB; SPI, I2C, PWM, UART, STM32, J1939, CAN; ROS, BLE, NFC, LoRa, 802.11; HTML, JSON, YAML, XML, NumPy, Pandas, Linux, CMake
+    - <u>Engineering Tools:</u> Power BI, SQL, Excel, data analytics; CANalyzer, dSPACE, ADAS; EDA, Multisim, Ultiboard; Fusion 360, CAD, 3D printing; Unity, game development, machine learning
 - title: Other Interests
   type: list
   contents:
-    - "<u>Hobbies:</u> music production and DJing, cars and motorsport, photography and videography, Japanese culture, gaming"
+    - <u>Hobbies:</u> music production and DJing, cars and motorsport, photography and videography, Japanese culture, gaming
