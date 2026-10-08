@@ -91,4 +91,6 @@ Version 1.1.1 of my fork added:
 
 I also wanted engine data that isn't broadcast on the chassis bus, so v1.1.2 added a read-only probe. It sent OBD-II and UDS RPM requests, on both 11-bit and 29-bit addressing, to see whether the gateway would route diagnostics through to the engine ECU. With the engine running there were no replies, so the gateway doesn't pass them. I removed the probe in v1.1.3 and kept it in the history.
 
-<!-- TODO(Haizhou): how it drives, and what's next. -->
+## How it's going
+
+I autocross in SCCA's G Street Touring class, where a controller like this isn't legal, so on event days the car runs stock and I haven't tuned how it feels at the limit. On the street, FWD mode gives a slight bump in mpg around town. And if anyone doubts that FWD mode really takes the rear axle out of the picture, an aggressive launch in it ends in a very convincing front-wheel burnout.
