@@ -22,9 +22,22 @@ The code and the full final report are on GitHub at [ZzzzzzT233/TBC_Capstone](ht
     The finished controller: a 3D-printed resin case, a screen on top, twelve clear grid buttons over it, and the five-way navigation stick on the right.
 </div>
 
+<div class="row">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include video.liquid path="https://www.youtube.com/embed/KZbZeCWBt0g" class="img-fluid rounded z-depth-1" %}
+    </div>
+</div>
+<div class="caption">
+    MIDICreator in action.
+</div>
+
 ## Why I wanted to build it
 
-I have been producing music for more than six years, and the thing that slows beginners down is rarely the software. It is music theory. A pad controller gives you one note per pad, so to play a chord you have to know which notes make it up and where they are on the grid. Most pad layouts don't tell you which pad is which note, either, so you have to memorize them.
+I grew up around music. My mom is a music teacher, I learned three instruments, and I played in my school orchestra for five years. When I started producing, a lot of my friends wanted to try it too, so I started teaching them the basics. That is where the idea came from. Many of them struggled to write anything that followed the rules of harmony, and often they couldn't hear that something was off. Most of them had never had any music education, and some gave up because the theory felt like a wall. I have wanted to find a way to lower that wall ever since.
+
+That same semester I wrote my STS research on this question: how unequal music education and access to technology shape who gets to make music. One thing I looked at was Apple's Smart Chord strips in Logic Pro and Logic Remote, which suggest chords that fit your key. They work well, but only inside Apple's ecosystem, even though MIDI itself is universal. MIDICreator was my attempt to put that kind of help into a plain USB MIDI device that works with any DAW.
+
+The thing that slows beginners down is rarely the software. It is music theory. A pad controller gives you one note per pad, so to play a chord you have to know which notes make it up and where they are on the grid. Most pad layouts don't tell you which pad is which note, either, so you have to memorize them.
 
 Some commercial controllers already have a chord mode. The Novation Launchpad Pro [MK3] is the best known. But you switch modes in companion software on the computer, so you end up juggling that software and your DAW, and the pads light up without telling you what they play. The labels are on the screen while your eyes are on the pads.
 
