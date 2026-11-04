@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Car Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+--bg: #0d0d0d;
+--surface: #161616;
+--surface2: #1e1e1e;
+--border: #2a2a2a;
+--accent: #e8ff47;
+--accent-dim: rgba(232,255,71,0.12);
+--accent-dim2: rgba(232,255,71,0.06);
+--text: #f0f0f0;
+--muted: #777;
+--danger: #ff4f4f;
+--success: #4fffb0;
+--yes-bg: rgba(79,255,176,0.08);
+--yes-border: rgba(79,255,176,0.25);
+--no-bg: rgba(255,79,79,0.08);
+--no-border: rgba(255,79,79,0.25);
+--radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+/* ── Layout ── */
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); }
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--accent); }
+.header-meta { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+.main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+/* ── Screens ── */
+.screen { display: none; width: 100%; max-width: 520px; }
+.screen.active { display: block; }
+/* ── Cards ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; }
+.card + .card { margin-top: 1rem; }
+.card-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 0.25rem; }
+.card-sub { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6; }
+/* ── Form elements ── */
+label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+input[type=text], select { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 10px 14px; border-radius: 8px; outline: none; transition: border-color 0.15s; margin-bottom: 1rem; }
+input[type=text]:focus, select:focus { border-color: var(--accent); }
+select option { background: #1e1e1e; }
+/* ── Buttons ── */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 11px 22px; border-radius: 8px; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #0d0d0d; }
+.btn-primary:hover { background: #d4eb2e; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(255,79,79,0.3); }
+.btn-danger:hover { background: rgba(255,79,79,0.08); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-full { width: 100%; }
+/* ── Room code ── */
+.room-code-box { background: var(--accent-dim2); border: 1px solid var(--accent); border-radius: 8px; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem; }
+.room-code { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 8px; color: var(--accent); line-height: 1; }
+.room-code-label { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 0.05em; }
+.share-url { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-top: 10px; word-break: break-all; cursor: pointer; transition: border-color 0.15s; }
+.share-url:hover { border-color: var(--accent); }
+.waiting-anim { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; margin-top: 1rem; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+/* ── Scoreboard ── */
+.scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+.score-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.score-card.you { border-color: rgba(232,255,71,0.3); }
+.score-name { font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.score-you-badge { font-size: 10px; background: var(--accent-dim); color: var(--accent); border-radius: 4px; padding: 1px 6px; margin-left: 5px; }
+.score-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--text); line-height: 1.1; }
+.score-label { font-size: 11px; color: var(--muted); }
+/* ── Chat log ── */
+.chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; margin-bottom: 1rem; padding-right: 4px; }
+.chat-log::-webkit-scrollbar { width: 4px; }
+.chat-log::-webkit-scrollbar-track { background: transparent; }
+.chat-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.msg { border-radius: 8px; padding: 10px 14px; font-size: 14px; line-height: 1.5; max-width: 85%; }
+.msg-q { background: var(--surface2); border: 1px solid var(--border); color: var(--text); align-self: flex-start; }
+.msg-yes { background: var(--yes-bg); border: 1px solid var(--yes-border); color: var(--success); align-self: flex-end; font-weight: 600; }
+.msg-no { background: var(--no-bg); border: 1px solid var(--no-border); color: var(--danger); align-self: flex-end; font-weight: 600; }
+.msg-maybe { background: var(--accent-dim2); border: 1px solid rgba(232,255,71,0.25); color: var(--accent); align-self: flex-end; font-weight: 600; }
+.msg-sys { background: transparent; color: var(--muted); font-size: 12px; text-align: center; align-self: center; font-style: italic; padding: 4px 8px; }
+.msg-wrong { background: var(--no-bg); border: 1px solid var(--no-border); color: var(--danger); align-self: flex-start; font-size: 13px; }
+/* ── Question input area ── */
+.input-area { display: flex; gap: 8px; }
+.input-area input { flex: 1; margin-bottom: 0; }
+.input-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+/* ── Limit bars ── */
+.limit-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+.limit-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.limit-bar.exhausted {
+  border-color: rgba(255,79,79,0.45);
+  background: rgba(255,79,79,0.05);
+}
+.limit-bar.exhausted .limit-label { color: var(--danger); }
+.limit-bar.low { border-color: rgba(232,255,71,0.3); }
+.limit-bar.low .limit-label { color: var(--accent); }
+.limit-icon { font-size: 14px; flex-shrink: 0; line-height: 1; }
+.limit-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted); flex: 1;
+  transition: color 0.2s;
+}
+.limit-pips { display: flex; gap: 4px; }
+.pip {
+  width: 9px; height: 9px; border-radius: 2px;
+  background: var(--border);
+  transition: background 0.25s, transform 0.2s;
+}
+.pip.used { background: var(--danger); transform: scale(0.8); opacity: 0.7; }
+.pip.remaining { background: var(--accent); }
+.limit-count {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); flex-shrink: 0; min-width: 30px; text-align: right;
+  transition: color 0.2s;
+}
+.limit-bar.exhausted .limit-count { color: var(--danger); }
+.limit-bar.low .limit-count { color: var(--accent); }
+/* ── Restriction mode buttons ── */
+.restrict-btns { display: flex; gap: 8px; margin-bottom: 1rem; }
+.restrict-btn {
+  flex: 1; padding: 9px 6px; font-size: 12px; font-weight: 600;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+  text-align: center; line-height: 1.3;
+}
+.restrict-btn:hover { border-color: var(--accent); color: var(--text); }
+.restrict-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.restrict-btn.active.nogeo { background: rgba(255,160,0,0.1); border-color: rgba(255,160,0,0.6); color: #ffa000; }
+.restrict-btn.active.inferno { background: rgba(255,79,79,0.1); border-color: rgba(255,79,79,0.5); color: var(--danger); }
+.restrict-desc { font-size: 11px; color: var(--muted); margin-bottom: 1rem; min-height: 16px; line-height: 1.5; }
+
+/* ── Mode toggle ── */
+.mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+.mode-tab { flex: 1; padding: 9px; font-size: 13px; font-weight: 500; background: transparent; color: var(--muted); border: none; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.mode-tab.active { background: var(--accent); color: #0d0d0d; font-weight: 600; }
+.mode-tab:not(.active):hover { background: var(--surface2); color: var(--text); }
+/* ── End screens ── */
+.result-banner { border-radius: var(--radius); padding: 2rem; text-align: center; margin-bottom: 1rem; }
+.result-win { background: linear-gradient(135deg, rgba(79,255,176,0.08), rgba(232,255,71,0.08)); border: 1px solid rgba(79,255,176,0.3); }
+.result-lose { background: rgba(255,79,79,0.06); border: 1px solid rgba(255,79,79,0.25); }
+.result-title { font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 3px; }
+.result-win .result-title { color: var(--success); }
+.result-lose .result-title { color: var(--danger); }
+.result-car { font-size: 22px; font-weight: 600; color: var(--text); margin: 0.5rem 0; }
+.result-stats { font-size: 14px; color: var(--muted); }
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+/* ── Toast ── */
+#toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--accent); color: #0d0d0d; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 99; white-space: nowrap; }
+#toast.show { opacity: 1; }
+/* ── Loading spinner ── */
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(232,255,71,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 480px) {
+.header { padding: 1rem; }
+.main { padding: 1rem; align-items: flex-start; padding-top: 2rem; }
+.card { padding: 1.25rem; }
+.room-code { font-size: 40px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="header">
+<div class="logo">Car Duel</div>
+<div class="header-meta" id="header-meta">Multiplayer · AI-Powered</div>
+</header>
+<main class="main">
+<!-- ── LOBBY ── -->
+<div class="screen active" id="screen-lobby">
+<div class="card">
+<div class="card-title">Start or Join</div>
+<div class="card-sub">One mystery car. Two players. Separate sessions. First to guess wins.</div>
+<label>Your name</label>
+<input type="text" id="lobby-name" placeholder="Enter your name" maxlength="20" />
+<div id="lobby-create-section">
+<label>Car Difficulty</label>
+<select id="lobby-difficulty">
+<option value="easy">Easy — popular everyday cars</option>
+<option value="medium" selected>Medium — niche but known</option>
+<option value="hard">Hard — rare & obscure</option>
+</select>
+<label>Question Rules</label>
+<div class="restrict-btns">
+  <button class="restrict-btn active" id="rbtn-normal" onclick="setRestriction('normal')">Normal<br><span style="font-weight:400;font-size:10px">5 geo · 5 maker</span></button>
+  <button class="restrict-btn nogeo" id="rbtn-nogeo" onclick="setRestriction('nogeo')">No Geo<br><span style="font-weight:400;font-size:10px">1 geo · 1 maker</span></button>
+  <button class="restrict-btn inferno" id="rbtn-inferno" onclick="setRestriction('inferno')">Inferno<br><span style="font-weight:400;font-size:10px">No geo, maker,<br>body, or era</span></button>
+</div>
+<div class="restrict-desc" id="restrict-desc">Standard mode — 5 country and 5 manufacturer questions allowed.</div>
+<div class="btn-row">
+<button class="btn btn-primary btn-full" onclick="createRoom()">Create room</button>
+<button class="btn btn-ghost btn-full" onclick="createSoloGame()">Single player</button>
+</div>
+<div class="divider"></div>
+<label>Or join with a code</label>
+<div class="input-area" style="margin-bottom:0">
+<input type="text" id="lobby-code" placeholder="e.g. A3F9B2" maxlength="6" style="text-transform:uppercase;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:0" />
+<button class="btn btn-ghost" onclick="joinRoom()">Join</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ── WAITING ── -->
+<div class="screen" id="screen-waiting">
+<div class="card">
+<div class="card-title">Room created</div>
+<div class="card-sub">Share the code or link with your opponent. Game starts when they join.</div>
+<div class="room-code-box">
+<div class="room-code" id="display-code">------</div>
+<div class="room-code-label">Room code</div>
+<div class="share-url" id="share-url" onclick="copyLink()" title="Click to copy">🔗 Click to copy link</div>
+</div>
+<div class="waiting-anim">
+<div class="dot"></div><div class="dot"></div><div class="dot"></div>
+<span>Waiting for opponent...</span>
+</div>
+</div>
+</div>
+<!-- ── GAME ── -->
+<div class="screen" id="screen-game">
+<div class="card" style="margin-bottom:1rem;">
+<div class="scoreboard" id="scoreboard"></div>
+<div id="game-status-msg" class="card-sub" style="margin-bottom:0;font-size:13px;"></div>
+</div>
+<div class="card">
+<!-- ── Question limit bars ── -->
+<div class="limit-bars" id="limit-bars">
+<div class="limit-bar" id="bar-geo">
+<span class="limit-icon">🌍</span>
+<span class="limit-label">Country / Origin</span>
+<div class="limit-pips" id="pips-geo"></div>
+<span class="limit-count" id="count-geo">5 left</span>
+</div>
+<div class="limit-bar" id="bar-maker">
+<span class="limit-icon">🏭</span>
+<span class="limit-label">Manufacturer</span>
+<div class="limit-pips" id="pips-maker"></div>
+<span class="limit-count" id="count-maker">5 left</span>
+</div>
+<div class="limit-bar exhausted" id="bar-body" style="display:none">
+<span class="limit-icon">🚗</span>
+<span class="limit-label">Body Style</span>
+<span class="limit-count" style="color:var(--danger)">Banned</span>
+</div>
+<div class="limit-bar exhausted" id="bar-era" style="display:none">
+<span class="limit-icon">📅</span>
+<span class="limit-label">Era / Year</span>
+<span class="limit-count" style="color:var(--danger)">Banned</span>
+</div>
+</div>
+<div class="mode-tabs">
+<button class="mode-tab active" id="tab-ask" onclick="setMode('ask')">Ask a question</button>
+<button class="mode-tab" id="tab-guess" onclick="setMode('guess')">Make a guess</button>
+</div>
+<div class="chat-log" id="chat-log"></div>
+<div class="input-area">
+<input type="text" id="game-input" placeholder="Is it a sports car?" onkeydown="if(event.key==='Enter')submitInput()" />
+<button class="btn btn-primary" id="send-btn" onclick="submitInput()">Ask</button>
+</div>
+<div class="input-hint" id="input-hint">Ask yes/no questions to narrow it down.</div>
+<div style="margin-top:12px;text-align:right;">
+<button onclick="surrender()" style="font-size:12px;background:transparent;border:none;color:var(--muted);cursor:pointer;text-decoration:underline;padding:0;" id="surrender-btn">Give up &amp; reveal answer</button>
+</div>
+</div>
+</div>
+<!-- ── SURRENDERED ── -->
+<div class="screen" id="screen-surrendered">
+<div class="result-banner result-lose">
+<div class="result-title">Surrendered</div>
+<div style="font-size:14px;color:#ccc;margin:0.5rem 0;">The secret car was:</div>
+<div class="result-car" id="surrender-car"></div>
+<div class="result-stats" id="surrender-stats"></div>
+</div>
+<div class="card">
+<div class="btn-row">
+<button class="btn btn-primary btn-full" onclick="requestRematch()">Request rematch</button>
+<button class="btn btn-ghost" onclick="goHome()">New game</button>
+</div>
+<div id="rematch-status-surrender" style="margin-top:0.75rem;font-size:13px;color:var(--muted);text-align:center;display:none;"></div>
+</div>
+</div>
+<!-- ── WIN ── -->
+<div class="screen" id="screen-win">
+<div class="result-banner result-win">
+<div class="result-title">You Win!</div>
+<div class="result-car" id="win-car"></div>
+<div class="result-stats" id="win-stats"></div>
+</div>
+<div class="card">
+<div class="btn-row">
+<button class="btn btn-primary btn-full" onclick="requestRematch()">Request rematch</button>
+<button class="btn btn-ghost" onclick="goHome()">New game</button>
+</div>
+<div id="rematch-status" style="margin-top:0.75rem;font-size:13px;color:var(--muted);text-align:center;display:none;"></div>
+</div>
+</div>
+<!-- ── LOSE ── -->
+<div class="screen" id="screen-lose">
+<div class="result-banner result-lose">
+<div class="result-title">Defeated</div>
+<div style="font-size:14px;color:#ccc;margin:0.5rem 0;" id="lose-msg"></div>
+<div class="result-car" id="lose-car"></div>
+<div class="result-stats" id="lose-stats"></div>
+</div>
+<div class="card">
+<div class="btn-row">
+<button class="btn btn-primary btn-full" onclick="acceptRematch()">Accept rematch</button>
+<button class="btn btn-ghost" onclick="goHome()">New game</button>
+</div>
+<div id="rematch-status-lose" style="margin-top:0.75rem;font-size:13px;color:var(--muted);text-align:center;display:none;"></div>
+</div>
+</div>
+</main>
+</div>
+<div id="toast"></div>
+<!-- Browser build: game engine runs in the page, players connect peer-to-peer. -->
+<script src="vendor/peerjs-1.5.4.min.js"></script>
+<script src="config.js"></script>
+<script src="engine.js"></script>
+<script src="transport.js"></script>
+<script>
+const socket = io({
+  // Match the server — skip polling, connect via WebSocket directly.
+  transports: ['websocket'],
+
+  // Keep trying to reconnect indefinitely with a sensible backoff cap.
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 8000,
+});
+let state = { roomId: null, name: null, mode: 'ask', sending: false, restrictionMode: 'normal' };
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+function addMsg(type, text) {
+  const log = document.getElementById('chat-log');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + type;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+function setMode(mode) {
+  state.mode = mode;
+  const input = document.getElementById('game-input');
+  const sendBtn = document.getElementById('send-btn');
+  const hint = document.getElementById('input-hint');
+  document.getElementById('tab-ask').classList.toggle('active', mode === 'ask');
+  document.getElementById('tab-guess').classList.toggle('active', mode === 'guess');
+  if (mode === 'ask') {
+    input.placeholder = 'Is it a sports car?';
+    sendBtn.textContent = 'Ask';
+    hint.textContent = 'Ask yes/no questions to narrow it down.';
+  } else {
+    input.placeholder = 'Ford Mustang...';
+    sendBtn.textContent = 'Guess';
+    hint.textContent = 'Type the make and model to make your final guess.';
+  }
+  input.focus();
+}
+function updateScoreboard(players) {
+  const el = document.getElementById('scoreboard');
+  el.innerHTML = players.map(p => `
+    <div class="score-card ${p.isYou ? 'you' : ''}">
+      <div class="score-name">${escHtml(p.name)}${p.isYou ? '<span class="score-you-badge">YOU</span>' : ''}</div>
+      <div class="score-num">${p.qCount}</div>
+      <div class="score-label">questions asked</div>
+    </div>
+  `).join('');
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Restriction mode selector ─────────────────────────────────────────────
+const RESTRICT_DESCS = {
+  normal:  'Standard mode — 5 country and 5 manufacturer questions allowed.',
+  nogeo:   'No Geo — only 1 country/origin and 1 manufacturer question each.',
+  inferno: '🔥 Inferno — no geo, no manufacturer, no body style, no era questions. Pure specs only.'
+};
+function setRestriction(mode) {
+  state.restrictionMode = mode;
+  sessionStorage.setItem('cdRestriction', mode);
+  ['normal','nogeo','inferno'].forEach(m => {
+    const btn = document.getElementById('rbtn-' + m);
+    btn.classList.toggle('active', m === mode);
+  });
+  document.getElementById('restrict-desc').textContent = RESTRICT_DESCS[mode];
+}
+
+// ── Limit bar renderer ─────────────────────────────────────────────────────
+function updateLimitBars(geoUsed, geoLimit, makerUsed, makerLimit, restrictionMode) {
+  function renderBar(barId, pipsId, countId, used, limit) {
+    const bar      = document.getElementById(barId);
+    if (!bar) return;
+    const pipsEl   = document.getElementById(pipsId);
+    const countEl  = document.getElementById(countId);
+
+    if (limit === 0) {
+      // Show as permanently banned
+      if (pipsEl) pipsEl.innerHTML = '';
+      if (countEl) countEl.textContent = 'Banned';
+      bar.classList.add('exhausted');
+      bar.classList.remove('low');
+      return;
+    }
+
+    const remaining = Math.max(0, limit - used);
+    if (pipsEl) {
+      pipsEl.innerHTML = '';
+      for (let i = 0; i < limit; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'pip ' + (i < used ? 'used' : 'remaining');
+        pipsEl.appendChild(pip);
+      }
+    }
+    if (countEl) countEl.textContent = remaining + ' left';
+    bar.classList.toggle('exhausted', remaining === 0);
+    bar.classList.toggle('low',       remaining === 1 && remaining > 0);
+  }
+
+  const mode = restrictionMode || state.restrictionMode || 'normal';
+  const inferno = mode === 'inferno';
+
+  renderBar('bar-geo',   'pips-geo',   'count-geo',   geoUsed,   geoLimit   ?? 5);
+  renderBar('bar-maker', 'pips-maker', 'count-maker', makerUsed, makerLimit ?? 5);
+
+  // Show inferno-only bars
+  const bodyBar = document.getElementById('bar-body');
+  const eraBar  = document.getElementById('bar-era');
+  if (bodyBar) bodyBar.style.display = inferno ? 'flex' : 'none';
+  if (eraBar)  eraBar.style.display  = inferno ? 'flex' : 'none';
+}
+
+// ── Check for room code in URL ────────────────────────────────────────────
+function checkUrlRoom() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('room');
+  if (code) {
+    document.getElementById('lobby-code').value = code.toUpperCase();
+  }
+}
+checkUrlRoom();
+
+// ── Auto-rejoin on page refresh ───────────────────────────────────────────
+(function attemptAutoRejoin() {
+  const savedRoom = sessionStorage.getItem('cdRoomId');
+  const savedName = sessionStorage.getItem('cdName');
+  const savedMode = sessionStorage.getItem('cdMode');
+  if (!savedRoom || !savedName) return;
+
+  // Pre-populate state so the connect handler can fire rejoin_room
+  state.roomId = savedRoom;
+  state.name   = savedName;
+  state.isSolo = savedMode === 'solo';
+  const savedRestriction = sessionStorage.getItem('cdRestriction');
+  if (savedRestriction) state.restrictionMode = savedRestriction;
+
+  // Show a lightweight "reconnecting" hint on the lobby while we try
+  const btn = document.querySelector('#screen-lobby .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Reconnecting...'; }
+
+  // The 'connect' socket event fires shortly after io() initialises.
+  // Our existing connect handler already calls rejoin_room when state.roomId
+  // and state.name are set — so nothing extra needed here.
+})();
+
+// ── Actions ───────────────────────────────────────────────────────────────
+function createRoom() {
+  const name = document.getElementById('lobby-name').value.trim() || 'Player 1';
+  state.name = name;
+  sessionStorage.setItem('cdName', name);
+  const difficulty = document.getElementById('lobby-difficulty').value;
+  const restrictionMode = state.restrictionMode;
+  document.querySelector('#screen-lobby .btn-primary').disabled = true;
+  document.querySelector('#screen-lobby .btn-primary').textContent = 'Picking a car...';
+  socket.emit('create_room', { name, difficulty, restrictionMode });
+}
+function createSoloGame() {
+  const name = document.getElementById('lobby-name').value.trim() || 'Solo Player';
+  state.name = name;
+  sessionStorage.setItem('cdName', name);
+  const difficulty = document.getElementById('lobby-difficulty').value;
+  const restrictionMode = state.restrictionMode;
+  socket.emit('create_solo_game', { name, difficulty, restrictionMode });
+}
+function joinRoom() {
+  const name = document.getElementById('lobby-name').value.trim() || 'Player 2';
+  state.name = name;
+  sessionStorage.setItem('cdName', name);
+  const code = document.getElementById('lobby-code').value.trim().toUpperCase();
+  if (!code) { toast('Enter a room code first'); return; }
+  state.roomId = code;
+  socket.emit('join_room', { roomId: code, name });
+}
+function copyLink() {
+  const url = `${window.location.origin}${window.location.pathname}?room=${state.roomId}`;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied!'));
+}
+function submitInput() {
+  if (state.sending) return;
+  const input = document.getElementById('game-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  state.sending = true;
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<div class="spinner"></div>';
+  if (state.mode === 'ask') {
+    addMsg('q', 'You: ' + text);
+    socket.emit('ask_question', { roomId: state.roomId, question: text });
+  } else {
+    addMsg('q', 'Your guess: ' + text);
+    socket.emit('submit_guess', { roomId: state.roomId, guess: text });
+  }
+}
+function resetSendBtn() {
+  state.sending = false;
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.disabled = false;
+  sendBtn.textContent = state.mode === 'ask' ? 'Ask' : 'Guess';
+}
+function surrender() {
+  if (!confirm('Give up and reveal the secret car?')) return;
+  document.getElementById('surrender-btn').disabled = true;
+  socket.emit('surrender', { roomId: state.roomId });
+}
+function requestRematch() {
+  socket.emit('request_rematch', { roomId: state.roomId });
+  const ids = ['rematch-status', 'rematch-status-surrender', 'rematch-status-lose'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'block'; el.textContent = 'Starting rematch...'; }
+  });
+}
+function acceptRematch() {
+  socket.emit('accept_rematch', { roomId: state.roomId });
+}
+function goHome() {
+  state = { roomId: null, name: null, mode: 'ask', sending: false };
+  sessionStorage.removeItem('cdRoomId');
+  sessionStorage.removeItem('cdName');
+  sessionStorage.removeItem('cdMode');
+  sessionStorage.removeItem('cdRestriction');
+  sessionStorage.removeItem('cdRole');
+  showScreen('lobby');
+  window.history.pushState({}, '', window.location.pathname);
+}
+
+// ── Socket events ─────────────────────────────────────────────────────────
+socket.on('picking_car', () => {
+  toast('AI is picking a secret car...');
+});
+socket.on('room_created', ({ roomId }) => {
+  const btn = document.querySelector('#screen-lobby .btn-primary');
+  if (btn) { btn.disabled = false; btn.textContent = 'Create room'; }
+  state.roomId = roomId;
+  sessionStorage.setItem('cdRoomId', roomId);
+  sessionStorage.setItem('cdMode', 'duel');
+  sessionStorage.setItem('cdRestriction', state.restrictionMode);
+  document.getElementById('display-code').textContent = roomId;
+  const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+  document.getElementById('share-url').textContent = '🔗 ' + url;
+  showScreen('waiting');
+  window.history.pushState({}, '', window.location.pathname + '?room=' + roomId);
+});
+socket.on('solo_game_created', ({ roomId }) => {
+  state.roomId = roomId;
+  sessionStorage.setItem('cdRoomId', roomId);
+  sessionStorage.setItem('cdMode', 'solo');
+  sessionStorage.setItem('cdRestriction', state.restrictionMode);
+  document.getElementById('header-meta').textContent = `Solo · Room ${roomId}`;
+});
+socket.on('game_state', ({ roomId, players, status, mode, restrictionMode }) => {
+  if (roomId && !state.roomId) state.roomId = roomId;
+  state.isSolo = mode === 'solo';
+  updateScoreboard(players);
+  // Sync limit bars from game_state if available (e.g. on reconnect)
+  const you = players.find(p => p.isYou);
+  if (you && you.geoLimit !== undefined) {
+    state._geoLimit = you.geoLimit;
+    state._makerLimit = you.makerLimit;
+    updateLimitBars(you.geoGuesses, you.geoLimit, you.makerGuesses, you.makerLimit, restrictionMode);
+  }
+  const opp = players.find(p => !p.isYou);
+  if (mode === 'solo') {
+    document.getElementById('game-status-msg').textContent =
+      `Single-player mode · ${status === 'playing' ? 'Game in progress' : ''}`;
+    document.getElementById('header-meta').textContent = `Solo · Room ${state.roomId}`;
+    return;
+  }
+  if (you && opp) {
+    document.getElementById('game-status-msg').textContent =
+      `Racing against ${opp.name} · ${status === 'playing' ? 'Game in progress' : ''}`;
+    document.getElementById('header-meta').textContent = `Room ${state.roomId}`;
+  }
+});
+socket.on('game_started', ({ message }) => {
+  state.sending = false;
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'Ask';
+  const surrenderBtn = document.getElementById('surrender-btn');
+  if (surrenderBtn) surrenderBtn.disabled = false;
+  document.getElementById('chat-log').innerHTML = '';
+  // Reset limit bars — actual limits come from server via game_state
+  updateLimitBars(0, state._geoLimit || 5, 0, state._makerLimit || 5, state.restrictionMode);
+  ['rematch-status', 'rematch-status-surrender', 'rematch-status-lose'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+  showScreen('game');
+  addMsg('sys', message);
+  setMode('ask');
+});
+socket.on('question_answered', ({ question, answer, qCount, geoGuesses, geoLimit, makerGuesses, makerLimit, restrictionMode }) => {
+  resetSendBtn();
+  const lowerAnswer = answer.toLowerCase();
+  let bubbleType = 'no';
+  if (lowerAnswer.startsWith('yes')) bubbleType = 'yes';
+  else if (lowerAnswer.startsWith('it could be') || lowerAnswer.startsWith('could be') || lowerAnswer.startsWith('unknown')) bubbleType = 'maybe';
+  addMsg(bubbleType, answer);
+  if (geoLimit !== undefined) {
+    updateLimitBars(geoGuesses, geoLimit, makerGuesses, makerLimit, restrictionMode);
+  }
+});
+socket.on('geo_limit_reached', ({ message }) => {
+  resetSendBtn();
+  addMsg('sys', '🌍 ' + message);
+  toast('Country questions used up!');
+});
+socket.on('maker_limit_reached', ({ message }) => {
+  resetSendBtn();
+  addMsg('sys', '🏭 ' + message);
+  toast('Manufacturer questions used up!');
+});
+socket.on('wrong_guess', ({ guess, qCount }) => {
+  resetSendBtn();
+  addMsg('wrong', 'Wrong! "' + guess + '" is not the car. Keep asking!');
+  setMode('ask');
+});
+socket.on('you_won', ({ car, qCount, guess }) => {
+  sessionStorage.removeItem('cdRoomId');
+  sessionStorage.removeItem('cdName');
+  sessionStorage.removeItem('cdMode');
+  resetSendBtn();
+  document.getElementById('win-car').textContent = car;
+  document.getElementById('win-stats').textContent =
+    `Guessed in ${qCount} question${qCount !== 1 ? 's' : ''}`;
+  showScreen('win');
+});
+socket.on('surrendered', ({ car, qCount }) => {
+  sessionStorage.removeItem('cdRoomId');
+  sessionStorage.removeItem('cdName');
+  sessionStorage.removeItem('cdMode');
+  resetSendBtn();
+  document.getElementById('surrender-car').textContent = car;
+  document.getElementById('surrender-stats').textContent =
+    `You asked ${qCount} question${qCount !== 1 ? 's' : ''}`;
+  showScreen('surrendered');
+});
+socket.on('opponent_surrendered', ({ name }) => {
+  addMsg('sys', `${name} gave up and revealed the answer.`);
+  toast(`${name} surrendered!`);
+});
+socket.on('opponent_won', ({ winnerName, car, loserQCount }) => {
+  sessionStorage.removeItem('cdRoomId');
+  sessionStorage.removeItem('cdName');
+  sessionStorage.removeItem('cdMode');
+  document.getElementById('lose-msg').textContent = `${winnerName} guessed it first!`;
+  document.getElementById('lose-car').textContent = car;
+  document.getElementById('lose-stats').textContent = `You asked ${loserQCount} question${loserQCount !== 1 ? 's' : ''}`;
+  showScreen('lose');
+});
+socket.on('rematch_requested', () => {
+  if (state.isSolo) { acceptRematch(); return; }
+  const ids = ['rematch-status', 'rematch-status-surrender', 'rematch-status-lose'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'block'; el.textContent = 'Opponent wants a rematch!'; }
+  });
+});
+socket.on('opponent_disconnected', () => {
+  toast('Opponent disconnected');
+  addMsg('sys', 'Your opponent left the game.');
+});
+// ── Reconnection handling ─────────────────────────────────────────────────
+socket.on('connect', () => {
+  // If we were in a game when we lost connection, attempt to rejoin
+  if (state.roomId && state.name) {
+    console.log('Reconnected — attempting to rejoin room', state.roomId);
+    socket.emit('rejoin_room', { roomId: state.roomId, name: state.name });
+  }
+});
+socket.on('rejoined', ({ roomId }) => {
+  // Restore the lobby button in case it was frozen by auto-rejoin
+  const btn = document.querySelector('#screen-lobby .btn-primary');
+  if (btn) { btn.disabled = false; btn.textContent = 'Create room'; }
+  toast('Reconnected!');
+  addMsg('sys', 'You reconnected to the game.');
+});
+socket.on('restore_history', ({ history }) => {
+  // Rebuild the chat log from server-side history after a reconnect
+  const log = document.getElementById('chat-log');
+  log.innerHTML = '';
+  history.forEach(({ q, a }) => {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'msg msg-q';
+    qDiv.textContent = 'You: ' + q;
+    log.appendChild(qDiv);
+    const aDiv = document.createElement('div');
+    const isYes = a.toLowerCase().startsWith('yes');
+    aDiv.className = 'msg msg-' + (isYes ? 'yes' : 'no');
+    aDiv.textContent = a;
+    log.appendChild(aDiv);
+  });
+  log.scrollTop = log.scrollHeight;
+});
+socket.on('opponent_temporarily_disconnected', ({ name }) => {
+  addMsg('sys', `${name} lost connection — waiting for them to reconnect...`);
+  toast(`${name} disconnected — waiting...`);
+});
+socket.on('opponent_reconnected', ({ name }) => {
+  addMsg('sys', `${name} reconnected!`);
+  toast(`${name} is back!`);
+});
+socket.on('body_style_limit_reached', ({ message }) => {
+  resetSendBtn();
+  addMsg('sys', '🚗 ' + message);
+  toast('Body style questions banned in Inferno!');
+});
+socket.on('era_limit_reached', ({ message }) => {
+  resetSendBtn();
+  addMsg('sys', '📅 ' + message);
+  toast('Era/year questions banned in Inferno!');
+});
+socket.on('error', (msg) => {
+  // If the error happened before we got into a game, clear stale session
+  // so the player isn't stuck in a reconnect loop
+  const currentScreen = document.querySelector('.screen.active')?.id;
+  if (currentScreen === 'screen-lobby') {
+    sessionStorage.removeItem('cdRoomId');
+    sessionStorage.removeItem('cdName');
+    sessionStorage.removeItem('cdMode');
+    state.roomId = null;
+    state.name   = null;
+    const btn = document.querySelector('#screen-lobby .btn-primary');
+    if (btn) { btn.disabled = false; btn.textContent = 'Create room'; }
+  }
+  toast(msg);
+  resetSendBtn();
+});
+</script>
+</body>
+</html>
