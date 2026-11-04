@@ -113,6 +113,16 @@
     return splitLaps(rows, filename);
   }
 
+  function expectedLapFromFilename(filename) {
+    const stem = filename.replace(/\.csv$/i, "");
+    const patterns = [/(?:^|[_\s-])lap[_\s-]*(\d+)(?=[_\s.-]|$)/i, /(?:^|[_\s-])l[_\s-]*(\d+)(?=[_\s.-]|$)/i];
+    for (const pattern of patterns) {
+      const match = stem.match(pattern);
+      if (match) return Number.parseInt(match[1], 10);
+    }
+    return null;
+  }
+
   function splitLaps(rows, filename) {
     const buckets = new Map();
     rows.forEach((row) => {
@@ -121,8 +131,12 @@
       buckets.get(lapNumber).push(row);
     });
 
+    const expectedLap = expectedLapFromFilename(filename);
+    const selectedBuckets =
+      expectedLap !== null && buckets.has(expectedLap) ? [[expectedLap, buckets.get(expectedLap)]] : Array.from(buckets.entries());
+
     const laps = [];
-    buckets.forEach((samples, lapNumber) => {
+    selectedBuckets.forEach(([lapNumber, samples]) => {
       if (samples.length < 3) return;
       const startTime = samples[0].time;
       let integratedDistance = 0;
@@ -232,10 +246,20 @@
       normalized: true,
       parsing: false,
       interaction: { intersect: false, mode: "nearest" },
-      plugins: { legend: { labels: { boxWidth: 11, usePointStyle: true } } },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 8, font: { size: 10 }, padding: 10, usePointStyle: true },
+        },
+      },
       scales: {
-        x: { type: "linear", title: { display: true, text: "Distance (m)" }, grid: { color: "rgba(127,127,127,.12)" } },
-        y: { title: { display: true, text: yTitle }, grid: { color: "rgba(127,127,127,.12)" } },
+        x: {
+          type: "linear",
+          title: { display: true, text: "Distance (m)" },
+          grid: { color: "rgba(127,127,127,.12)" },
+          ticks: { maxTicksLimit: 6 },
+        },
+        y: { title: { display: true, text: yTitle }, grid: { color: "rgba(127,127,127,.12)" }, ticks: { maxTicksLimit: 6 } },
       },
     };
   }
@@ -279,7 +303,13 @@
     state.mapLayers = [];
     const bounds = [];
     group.laps.forEach((lap, index) => {
-      const points = lap.samples.filter((sample) => sample.lat !== null && sample.lon !== null).map((sample) => [sample.lat, sample.lon]);
+      const points = [];
+      lap.samples.forEach((sample) => {
+        if (sample.lat === null || sample.lon === null) return;
+        const point = [sample.lat, sample.lon];
+        if (points.length && geoDistance(points[points.length - 1], point) > 200) return;
+        points.push(point);
+      });
       if (points.length < 2) return;
       const layer = L.polyline(points, { color: COLORS[index % COLORS.length], opacity: 0.85, weight: 3 }).bindTooltip(
         `${escapeHtml(lap.label)} · ${formatTime(lap.lapTime)}`
@@ -288,9 +318,11 @@
       state.mapLayers.push(layer);
       bounds.push(...points);
     });
-    if (bounds.length) state.map.fitBounds(bounds, { padding: [18, 18] });
-    else state.map.setView([38, -97], 3);
-    window.setTimeout(() => state.map.invalidateSize(), 0);
+    window.requestAnimationFrame(() => {
+      state.map.invalidateSize();
+      if (bounds.length) state.map.fitBounds(bounds, { padding: [16, 16], maxZoom: 18 });
+      else state.map.setView([38, -97], 3);
+    });
   }
 
   function sectorTimes(entry) {
@@ -358,12 +390,12 @@
       )
       .join("");
 
+    els.results.hidden = false;
     const comparisons = comparisonData(group, reference);
     updateKpis(group, reference);
     updateCharts(comparisons, reference);
     updateMap(group);
     updateSectors(comparisons, reference);
-    els.results.hidden = false;
   }
 
   async function loadFiles(files) {

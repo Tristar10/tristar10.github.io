@@ -16,7 +16,7 @@
   gap: 2rem;
   grid-template-columns: minmax(0, 1fr) auto;
   margin-bottom: 2rem;
-  padding: 2.2rem 0 2rem;
+  padding: 1.25rem 0 1.5rem;
 }
 
 .telemetry-eyebrow,
@@ -29,7 +29,7 @@
 }
 
 .telemetry-hero h1 {
-  font-size: clamp(2.15rem, 7vw, 4.65rem);
+  font-size: clamp(2.15rem, 7vw, 3.8rem);
   font-weight: 750;
   letter-spacing: -0.055em;
   line-height: 0.96;
@@ -74,7 +74,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  min-height: 220px;
+  min-height: 155px;
   justify-content: center;
   padding: 2rem;
   text-align: center;
@@ -177,7 +177,7 @@
 .telemetry-kpi {
   background: var(--telemetry-card);
   border: 1px solid var(--telemetry-line);
-  padding: 1.1rem;
+  padding: 0.85rem;
 }
 
 .telemetry-kpi-label {
@@ -207,11 +207,7 @@
   background: var(--telemetry-card);
   border: 1px solid var(--telemetry-line);
   min-width: 0;
-  padding: 1.25rem;
-}
-
-.telemetry-panel-wide {
-  grid-column: 1 / -1;
+  padding: 0.9rem;
 }
 
 .telemetry-panel-heading {
@@ -233,14 +229,16 @@
 }
 
 .telemetry-chart-wrap {
-  height: 320px;
+  height: 245px;
 }
 .telemetry-chart-wrap canvas {
-  max-height: 320px;
+  max-height: 245px;
 }
 #telemetry-map {
   border-radius: 6px;
-  height: 430px;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
   width: 100%;
 }
 
@@ -300,9 +298,9 @@
     margin-left: 0;
   }
   .telemetry-chart-wrap {
-    height: 280px;
+    height: 230px;
   }
   #telemetry-map {
-    height: 340px;
+    height: 280px;
   }
 }

@@ -54,7 +54,7 @@ map: true
     <div class="telemetry-kpis" id="telemetry-kpis"></div>
 
     <div class="telemetry-grid">
-      <article class="telemetry-panel telemetry-panel-wide">
+      <article class="telemetry-panel">
         <div class="telemetry-panel-heading">
           <div>
             <p class="telemetry-kicker">PACE</p>
@@ -65,7 +65,7 @@ map: true
         <div class="telemetry-chart-wrap"><canvas id="telemetry-speed-chart"></canvas></div>
       </article>
 
-      <article class="telemetry-panel telemetry-panel-wide">
+      <article class="telemetry-panel">
         <div class="telemetry-panel-heading">
           <div>
             <p class="telemetry-kicker">GAIN / LOSS</p>
