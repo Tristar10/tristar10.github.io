@@ -45,7 +45,7 @@
               {%- unless child.title == 'divider' -%}
                 {
                   {%- assign title = child.title | escape -%}
-                  {%- if child.permalink contains "/blog/" -%}{%- assign url = "/blog/" -%} {%- else -%}{%- assign url = child.url -%}{%- endif -%}
+                  {%- if child.permalink contains "/blog/" -%}{%- assign url = "/blog/" -%} {%- else -%}{%- assign url = child.url | default: child.permalink -%}{%- endif -%}
                   id: "dropdown-{{ title | slugify }}",
                   title: "{{ title }}",
                   description: "{{ child.description | strip_html | strip_newlines | escape }}",
