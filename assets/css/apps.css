@@ -146,6 +146,32 @@
   font-size: 0.85rem;
 }
 
+.apps-feature-game {
+  background-image: radial-gradient(circle at 90% 10%, rgba(42, 120, 239, 0.2), transparent 30%);
+  border-left-color: #2a78ef;
+}
+
+.apps-feature-game .apps-arrow {
+  background: #2a78ef;
+}
+
+.apps-feature-pending,
+.apps-feature-pending:hover {
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
+.apps-feature-pending .apps-arrow {
+  opacity: 0.35;
+}
+
+.apps-feature .apps-pending-note {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.9rem;
+}
+
 @media (max-width: 760px) {
   .apps-grid {
     grid-template-columns: 1fr;

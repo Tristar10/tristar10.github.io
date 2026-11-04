@@ -3,6 +3,8 @@ layout: page
 title: Apps
 permalink: /apps/
 description: Interactive tools you can use in the browser.
+# Set this to Car Duel's hosted URL (e.g. its Railway or Render address) to make the card live.
+car_duel_url: ""
 nav: true
 nav_order: 4
 dropdown: true
@@ -40,4 +42,31 @@ children:
     </div>
     <span class="apps-arrow" aria-hidden="true">↗</span>
   </a>
+</section>
+
+<section class="apps-section">
+  <div class="apps-section-heading">
+    <p>GAMES</p>
+    <h2>Things to play</h2>
+  </div>
+  {% if page.car_duel_url != "" %}
+  <a class="apps-feature apps-feature-game" href="{{ page.car_duel_url }}" target="_blank" rel="noopener">
+  {% else %}
+  <div class="apps-feature apps-feature-game apps-feature-pending">
+  {% endif %}
+    <div>
+      <span class="apps-tag">MULTIPLAYER GAME · OPENS ITS OWN SITE</span>
+      <h3>Car Duel</h3>
+      <p>
+        A real-time two-player car guessing game. Both players get the same secret car and ask yes/no
+        questions in their own sessions, with Claude answering from real car facts. First correct guess wins.
+      </p>
+      {% if page.car_duel_url == "" %}<p class="apps-pending-note">Launching soon.</p>{% endif %}
+    </div>
+    <span class="apps-arrow" aria-hidden="true">↗</span>
+  {% if page.car_duel_url != "" %}
+  </a>
+  {% else %}
+  </div>
+  {% endif %}
 </section>
