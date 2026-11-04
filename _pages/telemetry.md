@@ -103,8 +103,10 @@ map: true
         <p class="telemetry-theoretical" id="telemetry-theoretical"></p>
       </article>
     </div>
+
   </section>
 </div>
 
 <noscript>This analyzer needs JavaScript enabled to process telemetry files.</noscript>
+
 <script defer src="{{ '/assets/js/telemetry.js' | relative_url }}"></script>
