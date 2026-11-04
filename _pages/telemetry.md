@@ -3,8 +3,7 @@ layout: page
 title: Telemetry
 permalink: /telemetry/
 description: Compare RaceChrono laps directly in your browser.
-nav: true
-nav_order: 4
+nav: false
 chart:
   chartjs: true
 map: true
