@@ -206,8 +206,18 @@
 .telemetry-panel {
   background: var(--telemetry-card);
   border: 1px solid var(--telemetry-line);
+  cursor: zoom-in;
   min-width: 0;
   padding: 0.9rem;
+  position: relative;
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.telemetry-panel:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 1;
 }
 
 .telemetry-panel-heading {
@@ -215,6 +225,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 1rem;
+  padding-right: 2.4rem;
 }
 
 .telemetry-panel-heading h2 {
@@ -240,6 +251,174 @@
   overflow: hidden;
   position: relative;
   width: 100%;
+}
+
+/* Leaflet's CDN stylesheet can be blocked independently of its script. Keep
+   the required map layout rules local so tiles and GPS overlays never escape. */
+#telemetry-map .leaflet-pane,
+#telemetry-map .leaflet-tile,
+#telemetry-map .leaflet-marker-icon,
+#telemetry-map .leaflet-marker-shadow,
+#telemetry-map .leaflet-tile-container,
+#telemetry-map .leaflet-pane > svg,
+#telemetry-map .leaflet-pane > canvas,
+#telemetry-map .leaflet-zoom-box,
+#telemetry-map .leaflet-image-layer,
+#telemetry-map .leaflet-layer {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+#telemetry-map.leaflet-container {
+  background: #ddd;
+  outline: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#telemetry-map .leaflet-container .leaflet-overlay-pane svg,
+#telemetry-map .leaflet-overlay-pane svg {
+  max-height: none !important;
+  max-width: none !important;
+}
+
+#telemetry-map .leaflet-tile-pane img,
+#telemetry-map img.leaflet-tile {
+  max-height: none !important;
+  max-width: none !important;
+  padding: 0 !important;
+  width: auto !important;
+}
+
+#telemetry-map .leaflet-tile,
+#telemetry-map .leaflet-marker-icon,
+#telemetry-map .leaflet-marker-shadow {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#telemetry-map .leaflet-tile {
+  visibility: hidden;
+}
+
+#telemetry-map .leaflet-tile-loaded {
+  visibility: inherit;
+}
+
+#telemetry-map .leaflet-pane {
+  z-index: 400;
+}
+#telemetry-map .leaflet-tile-pane {
+  z-index: 200;
+}
+#telemetry-map .leaflet-overlay-pane {
+  z-index: 400;
+}
+#telemetry-map .leaflet-marker-pane {
+  z-index: 600;
+}
+#telemetry-map .leaflet-tooltip-pane {
+  z-index: 650;
+}
+#telemetry-map .leaflet-popup-pane {
+  z-index: 700;
+}
+#telemetry-map .leaflet-map-pane svg {
+  z-index: 200;
+}
+
+#telemetry-map .leaflet-zoom-animated {
+  transform-origin: 0 0;
+}
+
+#telemetry-map .leaflet-top,
+#telemetry-map .leaflet-bottom {
+  pointer-events: none;
+  position: absolute;
+  z-index: 1000;
+}
+#telemetry-map .leaflet-top {
+  top: 0;
+}
+#telemetry-map .leaflet-right {
+  right: 0;
+}
+#telemetry-map .leaflet-bottom {
+  bottom: 0;
+}
+#telemetry-map .leaflet-left {
+  left: 0;
+}
+#telemetry-map .leaflet-control {
+  clear: both;
+  float: left;
+  pointer-events: auto;
+  position: relative;
+  z-index: 800;
+}
+#telemetry-map .leaflet-right .leaflet-control {
+  float: right;
+}
+#telemetry-map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8);
+  color: #333;
+  font-size: 10px;
+  margin: 0;
+  padding: 1px 5px;
+}
+
+.telemetry-expand {
+  align-items: center;
+  background: var(--telemetry-card);
+  border: 1px solid var(--telemetry-line);
+  border-radius: 6px;
+  color: var(--telemetry-muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 1.15rem;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  position: absolute;
+  right: 0.7rem;
+  top: 0.7rem;
+  width: 32px;
+  z-index: 10;
+}
+
+.telemetry-expand:hover,
+.telemetry-expand:focus-visible {
+  border-color: var(--telemetry-accent);
+  color: var(--telemetry-accent);
+}
+
+body.telemetry-panel-open {
+  overflow: hidden;
+}
+
+.telemetry-panel.is-expanded {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  cursor: default;
+  inset: 1rem;
+  overflow: auto;
+  padding: 1.25rem;
+  position: fixed;
+  z-index: 1200;
+}
+
+.telemetry-panel.is-expanded .telemetry-chart-wrap {
+  height: calc(100vh - 130px);
+  min-height: 420px;
+}
+
+.telemetry-panel.is-expanded .telemetry-chart-wrap canvas {
+  max-height: none;
+}
+
+.telemetry-panel-map.is-expanded #telemetry-map {
+  height: calc(100vh - 115px);
+  min-height: 420px;
 }
 
 .telemetry-table-wrap {
@@ -302,5 +481,12 @@
   }
   #telemetry-map {
     height: 280px;
+  }
+  .telemetry-panel.is-expanded {
+    inset: 0;
+  }
+  .telemetry-panel.is-expanded .telemetry-chart-wrap,
+  .telemetry-panel-map.is-expanded #telemetry-map {
+    min-height: 320px;
   }
 }

@@ -2,7 +2,7 @@
   "use strict";
 
   const COLORS = ["#ef5b2a", "#2878b5", "#37a169", "#a855b5", "#d59c17", "#2f9da0", "#d24a68", "#6d72d8"];
-  const state = { groups: [], groupIndex: 0, referenceId: null, charts: {}, map: null, mapLayers: [] };
+  const state = { groups: [], groupIndex: 0, referenceId: null, charts: {}, map: null, mapBounds: [], mapLayers: [], expandedPanel: null };
 
   const byId = (id) => document.getElementById(id);
   const els = {};
@@ -293,7 +293,7 @@
   function updateMap(group) {
     if (!window.L) return;
     if (!state.map) {
-      state.map = L.map("telemetry-map", { scrollWheelZoom: false });
+      state.map = L.map("telemetry-map", { scrollWheelZoom: false, zoomControl: false });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors",
@@ -318,10 +318,75 @@
       state.mapLayers.push(layer);
       bounds.push(...points);
     });
+    state.mapBounds = bounds;
     window.requestAnimationFrame(() => {
       state.map.invalidateSize();
       if (bounds.length) state.map.fitBounds(bounds, { padding: [16, 16], maxZoom: 18 });
       else state.map.setView([38, -97], 3);
+    });
+  }
+
+  function resizeVisuals() {
+    window.requestAnimationFrame(() => {
+      Object.values(state.charts).forEach((chart) => chart.resize());
+      if (state.map) {
+        state.map.invalidateSize();
+        if (state.mapBounds.length) state.map.fitBounds(state.mapBounds, { padding: [16, 16], maxZoom: 18 });
+      }
+    });
+  }
+
+  function setExpandedPanel(panel) {
+    if (state.expandedPanel) {
+      const previousButton = state.expandedPanel.querySelector(".telemetry-expand");
+      state.expandedPanel.classList.remove("is-expanded");
+      if (previousButton) {
+        previousButton.textContent = "⛶";
+        previousButton.setAttribute("aria-label", "Expand panel");
+        previousButton.setAttribute("aria-pressed", "false");
+      }
+      state.expandedPanel = null;
+      document.body.classList.remove("telemetry-panel-open");
+    }
+
+    if (panel) {
+      const button = panel.querySelector(".telemetry-expand");
+      state.expandedPanel = panel;
+      panel.classList.add("is-expanded");
+      document.body.classList.add("telemetry-panel-open");
+      if (button) {
+        button.textContent = "×";
+        button.setAttribute("aria-label", "Close expanded panel");
+        button.setAttribute("aria-pressed", "true");
+      }
+    }
+    resizeVisuals();
+  }
+
+  function setupExpandablePanels() {
+    document.querySelectorAll(".telemetry-panel").forEach((panel) => {
+      const button = document.createElement("button");
+      button.className = "telemetry-expand";
+      button.type = "button";
+      button.textContent = "⛶";
+      button.setAttribute("aria-label", "Expand panel");
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setExpandedPanel(panel.classList.contains("is-expanded") ? null : panel);
+      });
+      panel.appendChild(button);
+      panel.addEventListener(
+        "click",
+        (event) => {
+          if (state.expandedPanel || event.target.closest("button, a, select, input, label")) return;
+          setExpandedPanel(panel);
+        },
+        true
+      );
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && state.expandedPanel) setExpandedPanel(null);
     });
   }
 
@@ -429,6 +494,7 @@
   }
 
   function reset() {
+    if (state.expandedPanel) setExpandedPanel(null);
     Object.values(state.charts).forEach((chart) => chart.destroy());
     state.charts = {};
     state.groups = [];
@@ -475,5 +541,6 @@
       render();
     });
     els.reset.addEventListener("click", reset);
+    setupExpandablePanels();
   });
 })();
