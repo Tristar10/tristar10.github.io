@@ -126,7 +126,8 @@
       if (samples.length < 3) return;
       const startTime = samples[0].time;
       let integratedDistance = 0;
-      const startDistance = samples.find((sample) => sample.distance !== null)?.distance || 0;
+      const firstDistanceSample = samples.find((sample) => sample.distance !== null);
+      const startDistance = firstDistanceSample ? firstDistanceSample.distance : 0;
       samples.forEach((sample, index) => {
         const previous = samples[Math.max(0, index - 1)];
         integratedDistance += sample.speedMps * Math.max(0, sample.time - previous.time);
