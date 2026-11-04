@@ -9,16 +9,21 @@ dropdown: true
 children:
   - title: All Apps
     permalink: /apps/
+    url: /apps/
   - title: divider
   - title: Telemetry Analyzer
     permalink: /telemetry/
+    url: /telemetry/
   - title: divider
   - title: JavaFX Wordle
     permalink: /projects/Wordle_Game/
+    url: /projects/Wordle_Game/
   - title: Cube Game
     permalink: /projects/rtos_cube_game/
+    url: /projects/rtos_cube_game/
   - title: Large ATC
     permalink: /projects/large_atc/
+    url: /projects/large_atc/
 ---
 
 <link rel="stylesheet" href="{{ '/assets/css/apps.css' | relative_url }}">
