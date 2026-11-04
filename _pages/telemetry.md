@@ -48,13 +48,17 @@ map: true
         Reference lap
         <select id="telemetry-reference-select"></select>
       </label>
+      <label class="telemetry-check-option">
+        <input id="telemetry-overlay-delta" type="checkbox">
+        Overlay delta on speed
+      </label>
       <button class="telemetry-reset" id="telemetry-reset" type="button">Clear files</button>
     </div>
 
     <div class="telemetry-kpis" id="telemetry-kpis"></div>
 
     <div class="telemetry-grid">
-      <article class="telemetry-panel">
+      <article class="telemetry-panel" id="telemetry-speed-panel">
         <div class="telemetry-panel-heading">
           <div>
             <p class="telemetry-kicker">PACE</p>
@@ -65,7 +69,7 @@ map: true
         <div class="telemetry-chart-wrap"><canvas id="telemetry-speed-chart"></canvas></div>
       </article>
 
-      <article class="telemetry-panel">
+      <article class="telemetry-panel" id="telemetry-delta-panel">
         <div class="telemetry-panel-heading">
           <div>
             <p class="telemetry-kicker">GAIN / LOSS</p>
@@ -82,6 +86,7 @@ map: true
             <p class="telemetry-kicker">DRIVING LINE</p>
             <h2>GPS track map</h2>
           </div>
+          <span>▼ corner min · ▲ straight max</span>
         </div>
         <div id="telemetry-map" aria-label="GPS map of selected laps"></div>
       </article>

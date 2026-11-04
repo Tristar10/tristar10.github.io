@@ -2,7 +2,17 @@
   "use strict";
 
   const COLORS = ["#ef5b2a", "#2878b5", "#37a169", "#a855b5", "#d59c17", "#2f9da0", "#d24a68", "#6d72d8"];
-  const state = { groups: [], groupIndex: 0, referenceId: null, charts: {}, map: null, mapBounds: [], mapLayers: [], expandedPanel: null };
+  const state = {
+    groups: [],
+    groupIndex: 0,
+    referenceId: null,
+    overlayDelta: false,
+    charts: {},
+    map: null,
+    mapBounds: [],
+    mapLayers: [],
+    expandedPanel: null,
+  };
 
   const byId = (id) => document.getElementById(id);
   const els = {};
@@ -239,7 +249,24 @@
     return `${minutes}:${(seconds - minutes * 60).toFixed(3).padStart(6, "0")}`;
   }
 
-  function chartOptions(yTitle) {
+  function chartOptions(yTitle, overlayDelta = false) {
+    const scales = {
+      x: {
+        type: "linear",
+        title: { display: true, text: "Distance (m)" },
+        grid: { color: "rgba(127,127,127,.12)" },
+        ticks: { maxTicksLimit: 6 },
+      },
+      y: { title: { display: true, text: yTitle }, grid: { color: "rgba(127,127,127,.12)" }, ticks: { maxTicksLimit: 6 } },
+    };
+    if (overlayDelta) {
+      scales.delta = {
+        position: "right",
+        title: { display: true, text: "Delta (s)" },
+        grid: { drawOnChartArea: false },
+        ticks: { maxTicksLimit: 6 },
+      };
+    }
     return {
       animation: false,
       maintainAspectRatio: false,
@@ -252,15 +279,7 @@
           labels: { boxWidth: 8, font: { size: 10 }, padding: 10, usePointStyle: true },
         },
       },
-      scales: {
-        x: {
-          type: "linear",
-          title: { display: true, text: "Distance (m)" },
-          grid: { color: "rgba(127,127,127,.12)" },
-          ticks: { maxTicksLimit: 6 },
-        },
-        y: { title: { display: true, text: yTitle }, grid: { color: "rgba(127,127,127,.12)" }, ticks: { maxTicksLimit: 6 } },
-      },
+      scales,
     };
   }
 
@@ -275,25 +294,113 @@
       pointRadius: 0,
     }));
     const deltaSets = comparisons.map((entry, index) => ({
-      label: entry.lap.label,
+      label: `${state.overlayDelta ? "Δ " : ""}${entry.lap.label}`,
       data: entry.delta,
       borderColor: COLORS[index % COLORS.length],
       backgroundColor: COLORS[index % COLORS.length],
       borderWidth: entry.lap.id === reference.id ? 2.5 : 1.7,
+      borderDash: state.overlayDelta ? [5, 4] : [],
       pointRadius: 0,
+      yAxisID: state.overlayDelta ? "delta" : "y",
     }));
-    state.charts.speed = new Chart(byId("telemetry-speed-chart"), { type: "line", data: { datasets }, options: chartOptions("Speed (km/h)") });
-    state.charts.delta = new Chart(byId("telemetry-delta-chart"), {
+    const speedDatasets = state.overlayDelta ? datasets.concat(deltaSets) : datasets;
+    state.charts.speed = new Chart(byId("telemetry-speed-chart"), {
       type: "line",
-      data: { datasets: deltaSets },
-      options: chartOptions("Delta (s)"),
+      data: { datasets: speedDatasets },
+      options: chartOptions("Speed (km/h)", state.overlayDelta),
     });
+    els.deltaPanel.hidden = state.overlayDelta;
+    els.speedPanel.classList.toggle("is-overlay", state.overlayDelta);
+    if (!state.overlayDelta) {
+      state.charts.delta = new Chart(byId("telemetry-delta-chart"), {
+        type: "line",
+        data: { datasets: deltaSets },
+        options: chartOptions("Delta (s)"),
+      });
+    }
+  }
+
+  function interpolateMapSample(left, right, ratio, distance) {
+    return {
+      distance,
+      speed: left.speedKph + (right.speedKph - left.speedKph) * ratio,
+      lat: left.lat + (right.lat - left.lat) * ratio,
+      lon: left.lon + (right.lon - left.lon) * ratio,
+    };
+  }
+
+  function speedMarkers(lap) {
+    const source = [];
+    lap.samples.forEach((sample) => {
+      if (sample.lat === null || sample.lon === null) return;
+      const previous = source[source.length - 1];
+      if (previous && (sample.lapDistance <= previous.lapDistance || geoDistance([previous.lat, previous.lon], [sample.lat, sample.lon]) > 200))
+        return;
+      source.push(sample);
+    });
+    if (source.length < 5) return [];
+
+    const step = 5;
+    const resampled = [];
+    let cursor = 0;
+    for (let distance = source[0].lapDistance; distance <= source[source.length - 1].lapDistance; distance += step) {
+      while (cursor < source.length - 2 && source[cursor + 1].lapDistance < distance) cursor += 1;
+      const left = source[cursor];
+      const right = source[Math.min(cursor + 1, source.length - 1)];
+      const span = right.lapDistance - left.lapDistance;
+      const ratio = span > 0 ? (distance - left.lapDistance) / span : 0;
+      resampled.push(interpolateMapSample(left, right, ratio, distance));
+    }
+    if (resampled.length < 12) return [];
+
+    const smoothed = resampled.map((point, index) => {
+      const start = Math.max(0, index - 2);
+      const end = Math.min(resampled.length - 1, index + 2);
+      let total = 0;
+      for (let i = start; i <= end; i += 1) total += resampled[i].speed;
+      return total / (end - start + 1);
+    });
+    const speedRange = Math.max(...smoothed) - Math.min(...smoothed);
+    const minProminence = Math.max(4, speedRange * 0.07);
+    const minSeparation = Math.max(35, lap.distance * 0.018);
+    const windowSize = Math.max(4, Math.round(40 / step));
+    const candidates = [];
+
+    for (let index = 2; index < smoothed.length - 2; index += 1) {
+      const value = smoothed[index];
+      const start = Math.max(0, index - windowSize);
+      const end = Math.min(smoothed.length - 1, index + windowSize);
+      const nearby = smoothed.slice(start, end + 1);
+      const isCorner = value <= smoothed[index - 1] && value < smoothed[index + 1];
+      const isStraight = value >= smoothed[index - 1] && value > smoothed[index + 1];
+      const prominence = isCorner ? Math.max(...nearby) - value : isStraight ? value - Math.min(...nearby) : 0;
+      if (prominence >= minProminence) {
+        const point = resampled[index];
+        candidates.push({
+          distance: point.distance,
+          speed: point.speed,
+          lat: point.lat,
+          lon: point.lon,
+          kind: isCorner ? "corner" : "straight",
+          prominence,
+        });
+      }
+    }
+
+    const selected = [];
+    candidates
+      .sort((a, b) => b.prominence - a.prominence)
+      .forEach((candidate) => {
+        if (selected.length >= 16) return;
+        if (selected.every((marker) => Math.abs(marker.distance - candidate.distance) >= minSeparation)) selected.push(candidate);
+      });
+    return selected.sort((a, b) => a.distance - b.distance);
   }
 
   function updateMap(group) {
     if (!window.L) return;
     if (!state.map) {
-      state.map = L.map("telemetry-map", { scrollWheelZoom: false, zoomControl: false });
+      state.map = L.map("telemetry-map", { scrollWheelZoom: true, zoomControl: true });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors",
@@ -316,6 +423,20 @@
       );
       layer.addTo(state.map);
       state.mapLayers.push(layer);
+      speedMarkers(lap).forEach((marker) => {
+        const symbol = marker.kind === "corner" ? "▼" : "▲";
+        const markerLayer = L.marker([marker.lat, marker.lon], {
+          icon: L.divIcon({
+            className: "telemetry-speed-marker",
+            html: `<span class="telemetry-speed-marker-inner is-${marker.kind}" style="--marker-color:${
+              COLORS[index % COLORS.length]
+            }">${symbol} ${Math.round(marker.speed)}</span>`,
+            iconAnchor: [24, 14],
+          }),
+        }).bindTooltip(`${marker.kind === "corner" ? "Corner minimum" : "Straight maximum"}: ${marker.speed.toFixed(1)} km/h`);
+        markerLayer.addTo(state.map);
+        state.mapLayers.push(markerLayer);
+      });
       bounds.push(...points);
     });
     state.mapBounds = bounds;
@@ -513,6 +634,9 @@
       track: byId("telemetry-track-select"),
       reference: byId("telemetry-reference-select"),
       reset: byId("telemetry-reset"),
+      overlayDelta: byId("telemetry-overlay-delta"),
+      speedPanel: byId("telemetry-speed-panel"),
+      deltaPanel: byId("telemetry-delta-panel"),
       kpis: byId("telemetry-kpis"),
       sectorBody: byId("telemetry-sector-body"),
       theoretical: byId("telemetry-theoretical"),
@@ -541,6 +665,10 @@
       render();
     });
     els.reset.addEventListener("click", reset);
+    els.overlayDelta.addEventListener("change", () => {
+      state.overlayDelta = els.overlayDelta.checked;
+      render();
+    });
     setupExpandablePanels();
   });
 })();

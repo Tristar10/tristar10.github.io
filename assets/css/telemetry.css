@@ -149,6 +149,22 @@
   text-transform: uppercase;
 }
 
+.telemetry-toolbar .telemetry-check-option {
+  align-items: center;
+  align-self: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.telemetry-check-option input {
+  accent-color: var(--telemetry-accent);
+  height: 16px;
+  width: 16px;
+}
+
 .telemetry-toolbar select,
 .telemetry-reset {
   background: var(--telemetry-card);
@@ -201,6 +217,10 @@
   display: grid;
   gap: 1px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#telemetry-speed-panel.is-overlay {
+  grid-column: 1 / -1;
 }
 
 .telemetry-panel {
@@ -366,6 +386,65 @@
   font-size: 10px;
   margin: 0;
   padding: 1px 5px;
+}
+
+#telemetry-map .leaflet-bar {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#telemetry-map .leaflet-bar a {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #ccc;
+  color: #222;
+  display: flex;
+  font:
+    bold 18px/30px Arial,
+    sans-serif;
+  height: 30px;
+  justify-content: center;
+  text-decoration: none;
+  width: 30px;
+}
+
+#telemetry-map .leaflet-bar a:last-child {
+  border-bottom: 0;
+}
+
+#telemetry-map .leaflet-bar a:hover {
+  background: #f4f4f4;
+}
+
+.telemetry-speed-marker {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+
+.telemetry-speed-marker-inner {
+  background: var(--telemetry-card, #fff);
+  border: 2px solid var(--marker-color);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  color: #161616;
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 20px;
+  min-width: 48px;
+  padding: 0 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.telemetry-speed-marker-inner.is-corner {
+  color: #b43224;
+}
+
+.telemetry-speed-marker-inner.is-straight {
+  color: #176b3a;
 }
 
 .telemetry-expand {
