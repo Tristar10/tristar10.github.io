@@ -48,6 +48,14 @@
     compareId: null,
     channelKey: null,
     mapMode: "laps",
+    baseName: "muted",
+    baseLayer: null,
+    hiddenLaps: new Set(),
+    zoomRange: null,
+    highlightLayer: null,
+    drag: null,
+    suppressClickUntil: 0,
+    replay: { playing: false, active: false, time: 0, last: null, speed: 1, frame: null },
     overlayDelta: false,
     charts: {},
     map: null,
@@ -515,6 +523,14 @@
   const cursorPlugin = {
     id: "telemetryCursor",
     afterDatasetsDraw(chart) {
+      const { drag } = state;
+      if (drag && drag.canvas === chart.canvas) {
+        const { top, bottom } = chart.chartArea;
+        chart.ctx.save();
+        chart.ctx.fillStyle = "rgba(255, 212, 0, 0.22)";
+        chart.ctx.fillRect(Math.min(drag.startPx, drag.endPx), top, Math.abs(drag.endPx - drag.startPx), bottom - top);
+        chart.ctx.restore();
+      }
       if (state.cursorIndex === null || !state.current) return;
       const x = state.current.xs[state.cursorIndex];
       const pixel = chart.scales.x.getPixelForValue(x);
@@ -534,8 +550,13 @@
   };
 
   let cursorFrame = null;
-  function setCursor(index) {
+  function setCursor(index, fromUser = true) {
     if (!state.current) return;
+    if (fromUser && state.replay.active && !state.replay.playing) {
+      state.replay.active = false;
+      els.replayClock.hidden = true;
+      updateReplayButton();
+    }
     state.cursorIndex = index === null ? null : Math.max(0, Math.min(state.current.xs.length - 1, index));
     if (cursorFrame) return;
     cursorFrame = window.requestAnimationFrame(() => {
@@ -553,29 +574,48 @@
     setCursor(Math.round(distance / step));
   }
 
+  // Hover moves the cursor; drag across a chart to zoom every chart and the
+  // map to that stretch; double-click to zoom back out.
   function attachChartCursor(canvas) {
-    canvas.addEventListener("pointermove", (event) => {
+    const locate = (event) => {
       const chart = window.Chart && Chart.getChart(canvas);
-      if (!chart || !state.current) return;
+      if (!chart || !state.current) return null;
       const rect = canvas.getBoundingClientRect();
-      const px = event.clientX - rect.left;
-      if (px < chart.chartArea.left || px > chart.chartArea.right) return;
-      setCursorByDistance(chart.scales.x.getValueForPixel(px));
+      const { left, right } = chart.chartArea;
+      return {
+        chart,
+        px: Math.min(right, Math.max(left, event.clientX - rect.left)),
+        inside: event.clientX - rect.left >= left && event.clientX - rect.left <= right,
+      };
+    };
+    canvas.addEventListener("pointermove", (event) => {
+      const hit = locate(event);
+      if (!hit) return;
+      if (state.drag && state.drag.canvas === canvas) {
+        state.drag.endPx = hit.px;
+        hit.chart.draw();
+      }
+      if (hit.inside && !state.replay.playing) setCursorByDistance(hit.chart.scales.x.getValueForPixel(hit.px));
     });
+    canvas.addEventListener("pointerdown", (event) => {
+      const hit = locate(event);
+      if (!hit || !hit.inside || event.button !== 0 || event.pointerType === "touch") return;
+      state.drag = { canvas, startPx: hit.px, endPx: hit.px };
+    });
+    canvas.addEventListener("dblclick", () => resetZoom());
   }
 
-  function updateCursorMarkers() {
-    if (!state.map) return;
-    state.cursorMarkers.forEach(({ marker, entry }) => {
-      const point = state.cursorIndex === null ? null : entry.points[state.cursorIndex];
-      if (!point || point.lat === null) {
-        marker.remove();
-        return;
-      }
-      marker.setLatLng([point.lat, point.lon]);
-      if (!state.map.hasLayer(marker)) marker.addTo(state.map);
-    });
-  }
+  window.addEventListener("pointerup", () => {
+    const drag = state.drag;
+    if (!drag) return;
+    state.drag = null;
+    const chart = window.Chart && Chart.getChart(drag.canvas);
+    if (!chart) return;
+    chart.draw();
+    if (Math.abs(drag.endPx - drag.startPx) < 8) return;
+    state.suppressClickUntil = performance.now() + 400;
+    zoomToDistance(chart.scales.x.getValueForPixel(drag.startPx), chart.scales.x.getValueForPixel(drag.endPx));
+  });
 
   function updateReadout() {
     const current = state.current;
@@ -605,12 +645,12 @@
   // ---- Charts --------------------------------------------------------------
 
   function chartOptions(yTitle, overlayDelta = false) {
-    const xs = state.current ? state.current.xs : null;
+    const [xMin, xMax] = chartXRange();
     const scales = {
       x: {
         type: "linear",
-        min: 0,
-        max: xs ? xs[xs.length - 1] : undefined,
+        min: xMin,
+        max: xMax,
         title: { display: true, text: "Distance along reference lap (m)" },
         grid: { color: "rgba(127,127,127,.12)" },
         ticks: { maxTicksLimit: 6 },
@@ -770,15 +810,6 @@
 
   // ---- Map -----------------------------------------------------------------
 
-  function interpolateMapSample(left, right, ratio, distance) {
-    return {
-      distance,
-      speed: left.speedKph + (right.speedKph - left.speedKph) * ratio,
-      lat: left.lat + (right.lat - left.lat) * ratio,
-      lon: left.lon + (right.lon - left.lon) * ratio,
-    };
-  }
-
   // Speed minima (corners) and maxima (straights) on an evenly spaced trace.
   function speedExtrema(points, lapDistance, step, limit = 16) {
     const smoothRadius = Math.max(2, Math.round(10 / step));
@@ -843,32 +874,6 @@
     return { markers: selected.sort((a, b) => a.distance - b.distance), smoothed };
   }
 
-  function speedMarkers(lap) {
-    const source = [];
-    lap.samples.forEach((sample) => {
-      if (sample.lat === null || sample.lon === null) return;
-      const previous = source[source.length - 1];
-      if (previous && (sample.lapDistance <= previous.lapDistance || geoDistance([previous.lat, previous.lon], [sample.lat, sample.lon]) > 200))
-        return;
-      source.push(sample);
-    });
-    if (source.length < 5) return [];
-
-    const step = 5;
-    const resampled = [];
-    let cursor = 0;
-    for (let distance = source[0].lapDistance; distance <= source[source.length - 1].lapDistance; distance += step) {
-      while (cursor < source.length - 2 && source[cursor + 1].lapDistance < distance) cursor += 1;
-      const left = source[cursor];
-      const right = source[Math.min(cursor + 1, source.length - 1)];
-      const span = right.lapDistance - left.lapDistance;
-      const ratio = span > 0 ? (distance - left.lapDistance) / span : 0;
-      resampled.push(interpolateMapSample(left, right, ratio, distance));
-    }
-    if (resampled.length < 12) return [];
-    return speedExtrema(resampled, lap.distance, step).markers;
-  }
-
   function lapPolyline(lap) {
     const points = [];
     lap.samples.forEach((sample) => {
@@ -904,105 +909,244 @@
     });
   }
 
-  function drawGainMap(current, bounds) {
-    const reference = current.comparisons.find((entry) => entry.lap.id === current.reference.id);
-    const compare = current.comparisons.find((entry) => entry.lap.id === current.compare.id);
-    const refLine = lapPolyline(reference.lap);
-    if (refLine.length > 1) {
-      const layer = L.polyline(refLine, { color: "#555", opacity: 0.35, weight: 2, dashArray: "4 4" }).addTo(state.map);
-      state.mapLayers.push(layer);
-      refLine.forEach((point) => bounds.push(point));
+  const BASE_LAYERS = {
+    muted: {
+      url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      options: { subdomains: "abcd", maxZoom: 20, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" },
+    },
+    dark: {
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      options: { subdomains: "abcd", maxZoom: 20, attribution: "&copy; OpenStreetMap contributors &copy; CARTO" },
+    },
+    satellite: {
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      options: { maxZoom: 19, attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics" },
+    },
+    street: {
+      url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      options: { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" },
+    },
+  };
+  const VALUE_COLORS = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#e76818", "#d7191c"];
+
+  const refEntry = (current) => current.comparisons.find((entry) => entry.lap.id === current.reference.id);
+  const focusEntry = (current) => current.comparisons.find((entry) => entry.lap.id === current.compare.id);
+  const isKeyLap = (entry, current) => entry.lap.id === current.reference.id || entry.lap.id === current.compare.id;
+
+  function addMapLayer(layer) {
+    layer.addTo(state.map);
+    state.mapLayers.push(layer);
+    return layer;
+  }
+
+  function mapLabel(latLng, html, className, options = {}) {
+    return L.marker(latLng, {
+      icon: L.divIcon({ className: `telemetry-map-label ${className}`, html, iconSize: [0, 0] }),
+      keyboard: false,
+      ...options,
+    });
+  }
+
+  function gridLine(entry, from = 0, to = entry.points.length - 1) {
+    const line = [];
+    for (let i = Math.max(0, from); i <= Math.min(entry.points.length - 1, to); i += 1) {
+      const point = entry.points[i];
+      if (point.lat !== null) line.push([point.lat, point.lon]);
     }
-    const rates = gainRates(compare, current.xs);
+    return line;
+  }
+
+  // Draws one lap's grid trace, grouping neighbouring points of the same colour.
+  function drawColoredRuns(entry, colorAt, bounds) {
     let run = null;
     const flush = () => {
-      if (run && run.points.length > 1) {
-        const layer = L.polyline(run.points, { color: GAIN_COLORS[run.bucket], opacity: 0.95, weight: 5, lineCap: "butt" }).addTo(state.map);
-        state.mapLayers.push(layer);
-        run.points.forEach((point) => bounds.push(point));
-      }
+      if (!run || run.points.length < 2) return;
+      addMapLayer(L.polyline(run.points, { color: run.color, opacity: 0.95, weight: 5, lineCap: "round", interactive: false }));
+      run.points.forEach((point) => bounds.push(point));
     };
-    compare.points.forEach((point, i) => {
+    entry.points.forEach((point, i) => {
       if (point.lat === null) return;
-      const bucket = gainBucket(rates[i]);
+      const color = colorAt(i);
       const latLng = [point.lat, point.lon];
-      if (!run || run.bucket !== bucket) {
-        const previous = run ? run.points[run.points.length - 1] : null;
-        flush();
-        run = { bucket, points: previous ? [previous, latLng] : [latLng] };
-      } else run.points.push(latLng);
+      if (run && run.color === color) {
+        run.points.push(latLng);
+        return;
+      }
+      const previous = run ? run.points[run.points.length - 1] : null;
+      flush();
+      run = { color, points: previous ? [previous, latLng] : [latLng] };
     });
     flush();
   }
 
-  function updateMap(current) {
-    if (!window.L) return;
-    if (!state.map) {
-      state.map = L.map("telemetry-map", { scrollWheelZoom: true, zoomControl: true });
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors",
-      }).addTo(state.map);
-      state.map.on("mousemove", (event) => {
-        if (!state.current) return;
-        const target = [event.latlng.lat, event.latlng.lng];
-        const reference = state.current.comparisons.find((entry) => entry.lap.id === state.current.reference.id);
-        let best = null;
-        let bestDistance = Infinity;
-        reference.points.forEach((point, index) => {
-          if (point.lat === null) return;
-          const distance = geoDistance(target, [point.lat, point.lon]);
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            best = index;
-          }
-        });
-        const metersPerPixel = (40075016 * Math.cos((target[0] * Math.PI) / 180)) / 2 ** (state.map.getZoom() + 8);
-        if (best !== null && bestDistance < Math.max(15, metersPerPixel * 25)) setCursor(best);
-      });
+  function drawGhostReference(current, bounds) {
+    if (current.compare.id === current.reference.id) return;
+    const line = lapPolyline(current.reference);
+    if (line.length < 2) return;
+    addMapLayer(L.polyline(line, { color: "#666", opacity: 0.45, weight: 2, dashArray: "4 5", interactive: false }));
+    line.forEach((point) => bounds.push(point));
+  }
+
+  function drawGainMap(current, bounds) {
+    drawGhostReference(current, bounds);
+    const rates = gainRates(focusEntry(current), current.xs);
+    drawColoredRuns(focusEntry(current), (i) => GAIN_COLORS[gainBucket(rates[i])], bounds);
+    return `<i style="background:${GAIN_COLORS.strongGain}"></i>gaining <i style="background:${GAIN_COLORS.neutral}"></i>even <i style="background:${GAIN_COLORS.strongLoss}"></i>losing`;
+  }
+
+  function drawValueMap(current, mode, bounds) {
+    const entry = focusEntry(current);
+    const key = mode === "speed" ? null : mode.slice(3);
+    const channel = key ? CHANNEL_BY_KEY[key] : null;
+    const values = entry.points.map((point) => (key ? point.ch[key] : point.speed));
+    const finite = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+    drawGhostReference(current, bounds);
+    if (!finite.length) return "No data for this lap";
+    if (channel && channel.flag) {
+      drawColoredRuns(entry, (i) => (values[i] ? "#d7191c" : "#9ca3af"), bounds);
+      return `<i style="background:#d7191c"></i>${escapeHtml(channel.label.replace(/ active$/, ""))} on <i style="background:#9ca3af"></i>off`;
     }
+    let low = finite[Math.floor((finite.length - 1) * 0.02)];
+    let high = finite[Math.floor((finite.length - 1) * 0.98)];
+    if (high - low < 1e-9) {
+      low -= 1;
+      high += 1;
+    }
+    drawColoredRuns(
+      entry,
+      (i) => {
+        if (!Number.isFinite(values[i])) return "#9ca3af";
+        const t = Math.min(0.999, Math.max(0, (values[i] - low) / (high - low)));
+        return VALUE_COLORS[Math.floor(t * VALUE_COLORS.length)];
+      },
+      bounds
+    );
+    const format = (value) => (key ? formatChannel(key, value) : `${value.toFixed(0)} km/h`);
+    return `<span class="telemetry-gradient-key">${format(low)}<b style="background:linear-gradient(90deg,${VALUE_COLORS.join(",")})"></b>${format(high)}</span>`;
+  }
+
+  function drawLapLines(current, bounds) {
+    current.comparisons
+      .filter((entry) => !state.hiddenLaps.has(entry.lap.id))
+      .sort((a, b) => Number(isKeyLap(a, current)) - Number(isKeyLap(b, current)))
+      .forEach((entry) => {
+        const line = lapPolyline(entry.lap);
+        if (line.length < 2) return;
+        const key = isKeyLap(entry, current);
+        addMapLayer(
+          L.polyline(line, { color: entry.color, opacity: key ? 0.95 : 0.35, weight: key ? 4 : 2.5 }).bindTooltip(
+            `${escapeHtml(entry.lap.label)} · ${formatTime(entry.lap.lapTime)}`,
+            { sticky: true }
+          )
+        );
+        line.forEach((point) => bounds.push(point));
+      });
+    return current.compare.id === current.reference.id ? "" : "Bold: reference + compare lap";
+  }
+
+  function bearing(a, b) {
+    const y = (b[1] - a[1]) * Math.cos((a[0] * Math.PI) / 180);
+    return (Math.atan2(y, b[0] - a[0]) * 180) / Math.PI;
+  }
+
+  function drawTrackFurniture(current) {
+    const ref = refEntry(current);
+    const points = ref.points.filter((point) => point.lat !== null);
+    if (points.length < 10) return;
+    const start = [points[0].lat, points[0].lon];
+    const finish = [points[points.length - 1].lat, points[points.length - 1].lon];
+    if (geoDistance(start, finish) < 40) {
+      addMapLayer(mapLabel(start, "<span>🏁 Start / Finish</span>", "is-flag", { interactive: false }));
+    } else {
+      addMapLayer(mapLabel(start, "<span>Start</span>", "is-flag", { interactive: false }));
+      addMapLayer(mapLabel(finish, "<span>🏁 Finish</span>", "is-flag", { interactive: false }));
+    }
+    for (let fraction = 0.05; fraction < 0.97; fraction += 0.1) {
+      const i = Math.round(fraction * GRID_POINTS);
+      const a = ref.points[Math.max(0, i - 4)];
+      const b = ref.points[Math.min(GRID_POINTS, i + 4)];
+      const here = ref.points[i];
+      if (a.lat === null || b.lat === null || here.lat === null) continue;
+      const angle = bearing([a.lat, a.lon], [b.lat, b.lon]) - 90;
+      addMapLayer(
+        mapLabel([here.lat, here.lon], `<span style="transform:translate(-50%,-50%) rotate(${angle.toFixed(0)}deg)">➤</span>`, "is-arrow", {
+          interactive: false,
+        })
+      );
+    }
+  }
+
+  function drawCornerLabels(current) {
+    const ref = refEntry(current);
+    const same = current.compare.id === current.reference.id;
+    (current.cornerRows || []).forEach((row) => {
+      const point = ref.points[row.zone.apex];
+      if (point.lat === null) return;
+      const tooltip = same
+        ? `T${row.zone.number}: min ${row.ref.minSpeed.toFixed(1)} km/h`
+        : `T${row.zone.number}: min ${row.ref.minSpeed.toFixed(1)} → ${row.cmp.minSpeed.toFixed(1)} km/h · ${formatSigned(row.dt)} s`;
+      const marker = mapLabel(
+        [point.lat, point.lon],
+        `<span class="${row.worst ? "is-worst" : ""}">T${row.zone.number}</span>`,
+        "is-corner"
+      ).bindTooltip(tooltip, { direction: "top", offset: [0, -10] });
+      marker.on("click", () => zoomToCorner(row.zone));
+      addMapLayer(marker);
+    });
+  }
+
+  function setBaseLayer(name) {
+    if (!state.map) return;
+    if (state.baseLayer) state.baseLayer.remove();
+    const base = BASE_LAYERS[name] || BASE_LAYERS.muted;
+    state.baseLayer = L.tileLayer(base.url, base.options).addTo(state.map);
+    els.mapPanel.classList.toggle("is-dark-map", name === "satellite" || name === "dark");
+  }
+
+  function ensureMap() {
+    if (state.map || !window.L) return Boolean(state.map);
+    state.map = L.map("telemetry-map", { scrollWheelZoom: true, zoomControl: true });
+    setBaseLayer(state.baseName);
+    state.map.on("mousemove", (event) => {
+      if (!state.current || state.replay.playing) return;
+      const target = [event.latlng.lat, event.latlng.lng];
+      let best = null;
+      let bestDistance = Infinity;
+      refEntry(state.current).points.forEach((point, index) => {
+        if (point.lat === null) return;
+        const distance = geoDistance(target, [point.lat, point.lon]);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = index;
+        }
+      });
+      const metersPerPixel = (40075016 * Math.cos((target[0] * Math.PI) / 180)) / 2 ** (state.map.getZoom() + 8);
+      if (best !== null && bestDistance < Math.max(15, metersPerPixel * 25)) setCursor(best);
+    });
+    return true;
+  }
+
+  function updateMap(current) {
+    if (!ensureMap()) return;
     state.mapLayers.forEach((layer) => layer.remove());
     state.cursorMarkers.forEach(({ marker }) => marker.remove());
     state.mapLayers = [];
     state.cursorMarkers = [];
     const bounds = [];
-    const gainMode = state.mapMode === "gain" && current.compare.id !== current.reference.id;
-    els.mapLegend.innerHTML = gainMode
-      ? `<i style="background:${GAIN_COLORS.strongGain}"></i>gaining <i style="background:${GAIN_COLORS.neutral}"></i>even <i style="background:${GAIN_COLORS.strongLoss}"></i>losing`
-      : "▼ corner min · ▲ straight max";
+    const multi = current.compare.id !== current.reference.id;
+    let mode = state.mapMode;
+    if (mode === "gain" && !multi) mode = "laps";
+    let legend;
+    if (mode === "gain") legend = drawGainMap(current, bounds);
+    else if (mode === "laps") legend = drawLapLines(current, bounds);
+    else legend = drawValueMap(current, mode, bounds);
+    if (mode !== "laps") legend = `${escapeHtml(current.compare.label)}: ${legend}`;
+    els.mapLegend.innerHTML = legend;
 
-    if (gainMode) drawGainMap(current, bounds);
-    else {
-      current.comparisons.forEach((entry) => {
-        const { lap } = entry;
-        const points = lapPolyline(lap);
-        if (points.length < 2) return;
-        const layer = L.polyline(points, { color: entry.color, opacity: 0.85, weight: 3 }).bindTooltip(
-          `${escapeHtml(lap.label)} · ${formatTime(lap.lapTime)}`
-        );
-        layer.addTo(state.map);
-        state.mapLayers.push(layer);
-        speedMarkers(lap).forEach((marker) => {
-          const symbol = marker.kind === "corner" ? "▼" : "▲";
-          const markerLayer = L.marker([marker.lat, marker.lon], {
-            icon: L.divIcon({
-              className: "telemetry-speed-marker",
-              html: `<span class="telemetry-speed-marker-inner is-${marker.kind}" style="--marker-color:${entry.color}">${symbol} ${Math.round(
-                marker.speed
-              )}</span>`,
-              iconAnchor: [24, 14],
-            }),
-          }).bindTooltip(`${marker.kind === "corner" ? "Corner minimum" : "Straight maximum"}: ${marker.speed.toFixed(1)} km/h`);
-          markerLayer.addTo(state.map);
-          state.mapLayers.push(markerLayer);
-        });
-        points.forEach((point) => bounds.push(point));
-      });
-    }
+    drawTrackFurniture(current);
+    drawCornerLabels(current);
 
-    const cursorLaps = gainMode
-      ? current.comparisons.filter((entry) => entry.lap.id === current.reference.id || entry.lap.id === current.compare.id)
-      : current.comparisons;
+    const cursorLaps = current.comparisons.filter((entry) => !state.hiddenLaps.has(entry.lap.id) && (mode === "laps" || isKeyLap(entry, current)));
     state.cursorMarkers = cursorLaps.map((entry) => ({
       entry,
       marker: L.circleMarker([0, 0], {
@@ -1015,11 +1159,216 @@
       }),
     }));
 
+    updateLapLegend(current);
     state.mapBounds = bounds;
+    drawZoomHighlight();
     window.requestAnimationFrame(() => {
       state.map.invalidateSize();
-      if (bounds.length) state.map.fitBounds(bounds, { padding: [16, 16], maxZoom: 18 });
-      else state.map.setView([38, -97], 3);
+      fitMap();
+    });
+  }
+
+  function fitMap() {
+    if (!state.map) return;
+    const line = state.zoomRange ? zoomLine() : null;
+    if (line && line.length > 1) state.map.fitBounds(line, { padding: [30, 30], maxZoom: 19 });
+    else if (state.mapBounds.length) state.map.fitBounds(state.mapBounds, { padding: [16, 16], maxZoom: 18 });
+    else state.map.setView([38, -97], 3);
+  }
+
+  function updateLapLegend(current) {
+    els.lapLegend.innerHTML = current.comparisons
+      .slice()
+      .sort((a, b) => a.lap.lapTime - b.lap.lapTime)
+      .map((entry) => {
+        const hidden = state.hiddenLaps.has(entry.lap.id);
+        const role = entry.lap.id === current.reference.id ? "ref" : entry.lap.id === current.compare.id ? "compare" : "";
+        return `<button type="button" class="telemetry-lap-chip${hidden ? " is-hidden" : ""}${role ? " is-key" : ""}" data-id="${encodeURIComponent(
+          entry.lap.id
+        )}" style="--chip-color:${entry.color}" aria-pressed="${!hidden}" title="${hidden ? "Show" : "Hide"} on map">
+          <i></i>${escapeHtml(entry.lap.label)} <small>${formatTime(entry.lap.lapTime)}${role ? ` · ${role}` : ""}</small>
+        </button>`;
+      })
+      .join("");
+  }
+
+  // ---- Zoom to a stretch of track -----------------------------------------
+
+  function zoomIndices() {
+    if (!state.zoomRange || !state.current) return null;
+    return [Math.floor(state.zoomRange[0] * GRID_POINTS), Math.ceil(state.zoomRange[1] * GRID_POINTS)];
+  }
+
+  function zoomLine() {
+    const indices = zoomIndices();
+    return indices ? gridLine(refEntry(state.current), indices[0], indices[1]) : null;
+  }
+
+  function chartXRange() {
+    const current = state.current;
+    if (!current) return [undefined, undefined];
+    const max = current.xs[current.xs.length - 1];
+    return state.zoomRange ? [state.zoomRange[0] * max, state.zoomRange[1] * max] : [0, max];
+  }
+
+  function applyChartZoom() {
+    const [min, max] = chartXRange();
+    ["speed", "delta", "channel"].forEach((name) => {
+      const chart = state.charts[name];
+      if (!chart) return;
+      chart.options.scales.x.min = min;
+      chart.options.scales.x.max = max;
+      chart.update("none");
+    });
+  }
+
+  function drawZoomHighlight() {
+    if (state.highlightLayer) state.highlightLayer.remove();
+    state.highlightLayer = null;
+    const line = state.map && state.zoomRange ? zoomLine() : null;
+    if (!line || line.length < 2) return;
+    state.highlightLayer = L.polyline(line, { color: "#ffd400", weight: 14, opacity: 0.5, interactive: false }).addTo(state.map);
+    state.highlightLayer.bringToBack();
+  }
+
+  function zoomToDistance(x0, x1) {
+    const current = state.current;
+    if (!current) return;
+    const max = current.xs[current.xs.length - 1];
+    const a = Math.max(0, Math.min(x0, x1));
+    const b = Math.min(max, Math.max(x0, x1));
+    if (b - a < 5) return;
+    state.zoomRange = [a / max, b / max];
+    els.zoomReset.hidden = false;
+    applyChartZoom();
+    drawZoomHighlight();
+    fitMap();
+  }
+
+  function zoomToCorner(zone) {
+    const { xs } = state.current;
+    const margin = (xs[zone.end] - xs[zone.start]) * 0.1;
+    zoomToDistance(xs[zone.start] - margin, xs[zone.end] + margin);
+    setCursor(zone.apex);
+  }
+
+  function resetZoom() {
+    state.zoomRange = null;
+    els.zoomReset.hidden = true;
+    applyChartZoom();
+    drawZoomHighlight();
+    fitMap();
+  }
+
+  // ---- Ghost replay --------------------------------------------------------
+
+  function lapPositionAt(lap, time) {
+    const { samples } = lap;
+    if (time <= 0) return samples[0];
+    if (time >= lap.lapTime) return samples[samples.length - 1];
+    let low = 0;
+    let high = samples.length - 1;
+    while (high - low > 1) {
+      const mid = (low + high) >> 1;
+      if (samples[mid].elapsed <= time) low = mid;
+      else high = mid;
+    }
+    const left = samples[low];
+    const right = samples[high];
+    const span = right.elapsed - left.elapsed;
+    const ratio = span > 0 ? (time - left.elapsed) / span : 0;
+    const mix = (a, b) => (a === null || b === null ? a : a + (b - a) * ratio);
+    return {
+      lat: mix(left.lat, right.lat),
+      lon: mix(left.lon, right.lon),
+      lapDistance: mix(left.lapDistance, right.lapDistance),
+      speedKph: mix(left.speedKph, right.speedKph),
+    };
+  }
+
+  function replayDuration() {
+    const current = state.current;
+    return Math.max(...current.comparisons.filter((entry) => !state.hiddenLaps.has(entry.lap.id)).map((entry) => entry.lap.lapTime), 0);
+  }
+
+  function updateReplayButton() {
+    els.replayButton.textContent = state.replay.playing ? "❚❚ Pause" : state.replay.active ? "▶ Resume" : "▶ Replay";
+    els.replayButton.setAttribute("aria-pressed", String(state.replay.playing));
+  }
+
+  function stopReplay() {
+    state.replay.playing = false;
+    state.replay.active = false;
+    state.replay.time = 0;
+    if (state.replay.frame) window.cancelAnimationFrame(state.replay.frame);
+    state.replay.frame = null;
+    if (els.replayClock) els.replayClock.hidden = true;
+    if (els.replayButton) updateReplayButton();
+  }
+
+  function toggleReplay() {
+    if (!state.current) return;
+    const replay = state.replay;
+    if (replay.playing) {
+      replay.playing = false;
+      updateReplayButton();
+      return;
+    }
+    if (!replay.active || replay.time >= replayDuration()) replay.time = 0;
+    replay.active = true;
+    replay.playing = true;
+    replay.last = null;
+    updateReplayButton();
+    const step = (timestamp) => {
+      if (!replay.playing) return;
+      if (replay.last !== null) replay.time += ((timestamp - replay.last) / 1000) * replay.speed;
+      replay.last = timestamp;
+      const duration = replayDuration();
+      if (replay.time >= duration) {
+        replay.time = duration;
+        replay.playing = false;
+      }
+      showReplayFrame();
+      updateReplayButton();
+      if (replay.playing) replay.frame = window.requestAnimationFrame(step);
+    };
+    replay.frame = window.requestAnimationFrame(step);
+  }
+
+  function showReplayFrame() {
+    const current = state.current;
+    const time = state.replay.time;
+    const reference = current.reference;
+    const refPosition = lapPositionAt(reference, time);
+    const index = Math.max(0, Math.min(GRID_POINTS, Math.round((refPosition.lapDistance / reference.distance) * GRID_POINTS)));
+    setCursor(index, false);
+    let gap = "";
+    if (current.compare.id !== reference.id) {
+      if (time >= reference.lapTime && time >= current.compare.lapTime) {
+        gap = `Finished ${formatSigned(current.compare.lapTime - reference.lapTime)} s`;
+      } else {
+        // Same measure as the delta chart: how much later the compare lap
+        // reaches the point the reference lap is at right now.
+        const delta = focusEntry(current).delta[index].y;
+        gap = Math.abs(delta) < 0.005 ? "Dead even" : `Compare ${Math.abs(delta).toFixed(2)} s ${delta > 0 ? "behind" : "ahead"}`;
+      }
+    }
+    els.replayClock.hidden = false;
+    els.replayClock.innerHTML = `<b>${formatTime(time)}</b>${gap ? `<span>${gap}</span>` : ""}`;
+  }
+
+  function updateCursorMarkers() {
+    if (!state.map) return;
+    state.cursorMarkers.forEach(({ marker, entry }) => {
+      let point = null;
+      if (state.replay.active) point = lapPositionAt(entry.lap, state.replay.time);
+      else if (state.cursorIndex !== null) point = entry.points[state.cursorIndex];
+      if (!point || point.lat === null) {
+        marker.remove();
+        return;
+      }
+      marker.setLatLng([point.lat, point.lon]);
+      if (!state.map.hasLayer(marker)) marker.addTo(state.map);
     });
   }
 
@@ -1028,7 +1377,7 @@
       Object.values(state.charts).forEach((chart) => chart.resize());
       if (state.map) {
         state.map.invalidateSize();
-        if (state.mapBounds.length) state.map.fitBounds(state.mapBounds, { padding: [16, 16], maxZoom: 18 });
+        fitMap();
       }
     });
   }
@@ -1076,7 +1425,12 @@
       panel.addEventListener(
         "click",
         (event) => {
-          if (state.expandedPanel || event.target.closest("button, a, select, input, label, tr, #telemetry-map")) return;
+          if (
+            state.expandedPanel ||
+            performance.now() < state.suppressClickUntil ||
+            event.target.closest("button, a, select, input, label, tr, canvas, #telemetry-map, .telemetry-map-tools")
+          )
+            return;
           setExpandedPanel(panel);
         },
         true
@@ -1145,6 +1499,7 @@
     const channels = current.group.channels;
     const same = reference === compare;
     els.cornerCompare.textContent = same ? `Reference: ${current.reference.label}` : `${current.compare.label} vs ${current.reference.label}`;
+    current.cornerRows = [];
     if (!zones.length) {
       els.cornerBody.innerHTML = `<tr><td colspan="7">No clear corners found in the reference lap.</td></tr>`;
       els.cornerSummary.textContent = "";
@@ -1159,6 +1514,10 @@
       .filter((row) => row.dt > 0.02)
       .sort((a, b) => b.dt - a.dt)
       .slice(0, 3);
+    rows.forEach((row) => {
+      row.worst = !same && worst.includes(row);
+    });
+    current.cornerRows = rows;
     const cellClass = (value, threshold) => (value > threshold ? "is-loss" : value < -threshold ? "is-gain" : "");
     els.cornerBody.innerHTML = rows
       .map((row) => {
@@ -1240,6 +1599,17 @@
       .join("");
   }
 
+  function updateMapModeOptions(group) {
+    const options = [["laps", "Lap colors"]];
+    if (group.laps.length > 1) options.push(["gain", "Gain / loss vs reference"]);
+    options.push(["speed", "Speed"]);
+    group.channels.forEach((key) => options.push([`ch:${key}`, CHANNEL_BY_KEY[key].label]));
+    if (!options.some(([value]) => value === state.mapMode)) state.mapMode = "laps";
+    els.mapMode.innerHTML = options
+      .map(([value, label]) => `<option value="${value}" ${value === state.mapMode ? "selected" : ""}>${escapeHtml(label)}</option>`)
+      .join("");
+  }
+
   function lapOptions(laps, selectedId) {
     return laps
       .slice()
@@ -1274,6 +1644,7 @@
       .join("");
 
     els.results.hidden = false;
+    stopReplay();
     const { xs, comparisons } = comparisonData(group, reference);
     state.current = { group, reference, compare, xs, comparisons };
     if (state.cursorIndex !== null && state.cursorIndex >= xs.length) state.cursorIndex = null;
@@ -1281,8 +1652,9 @@
     updateCharts(comparisons, reference);
     updateChannelChart();
     updateGG();
-    updateMap(state.current);
     updateCorners(state.current);
+    updateMapModeOptions(group);
+    updateMap(state.current);
     updateSectors(comparisons, reference);
     setCursor(state.cursorIndex);
   }
@@ -1304,6 +1676,9 @@
       const laps = results.flat();
       if (!laps.length) throw new Error("No complete laps were found in the selected files.");
       state.groups = groupLaps(laps);
+      state.zoomRange = null;
+      state.hiddenLaps.clear();
+      els.zoomReset.hidden = true;
       state.groupIndex = 0;
       state.referenceId = null;
       state.compareId = null;
@@ -1337,7 +1712,11 @@
     state.referenceId = null;
     state.compareId = null;
     state.cursorIndex = null;
+    state.zoomRange = null;
+    state.hiddenLaps.clear();
+    stopReplay();
     state.current = null;
+    els.zoomReset.hidden = true;
     els.readout.hidden = true;
     els.files.value = "";
     els.results.hidden = true;
@@ -1354,6 +1733,13 @@
       reference: byId("telemetry-reference-select"),
       compare: byId("telemetry-compare-select"),
       mapMode: byId("telemetry-map-mode"),
+      mapBase: byId("telemetry-map-base"),
+      mapPanel: byId("telemetry-map-panel"),
+      lapLegend: byId("telemetry-lap-legend"),
+      zoomReset: byId("telemetry-zoom-reset"),
+      replayButton: byId("telemetry-replay"),
+      replaySpeed: byId("telemetry-replay-speed"),
+      replayClock: byId("telemetry-replay-clock"),
       channel: byId("telemetry-channel-select"),
       channelUnit: byId("telemetry-channel-unit"),
       reset: byId("telemetry-reset"),
@@ -1390,6 +1776,8 @@
     els.dropzone.addEventListener("drop", (event) => loadFiles(event.dataTransfer.files));
     els.track.addEventListener("change", () => {
       state.groupIndex = Number(els.track.value);
+      state.zoomRange = null;
+      els.zoomReset.hidden = true;
       state.referenceId = null;
       state.compareId = null;
       state.cursorIndex = null;
@@ -1410,6 +1798,24 @@
         updateCursorMarkers();
       }
     });
+    els.mapBase.addEventListener("change", () => {
+      state.baseName = els.mapBase.value;
+      setBaseLayer(state.baseName);
+    });
+    els.lapLegend.addEventListener("click", (event) => {
+      const chip = event.target.closest("[data-id]");
+      if (!chip || !state.current) return;
+      const id = decodeURIComponent(chip.dataset.id);
+      if (state.hiddenLaps.has(id)) state.hiddenLaps.delete(id);
+      else state.hiddenLaps.add(id);
+      updateMap(state.current);
+      updateCursorMarkers();
+    });
+    els.zoomReset.addEventListener("click", resetZoom);
+    els.replayButton.addEventListener("click", toggleReplay);
+    els.replaySpeed.addEventListener("change", () => {
+      state.replay.speed = Number(els.replaySpeed.value) || 1;
+    });
     els.channel.addEventListener("change", () => {
       state.channelKey = els.channel.value;
       updateChannelChart();
@@ -1419,9 +1825,8 @@
       const row = event.target.closest("tr[data-index]");
       if (!row || !state.current) return;
       const index = Number(row.dataset.index);
-      setCursor(index);
-      const point = state.current.comparisons.find((entry) => entry.lap.id === state.current.reference.id).points[index];
-      if (state.map && point.lat !== null) state.map.panTo([point.lat, point.lon]);
+      const match = (state.current.cornerRows || []).find((candidate) => candidate.zone.apex === index);
+      if (match) zoomToCorner(match.zone);
     });
     els.reset.addEventListener("click", reset);
     els.overlayDelta.addEventListener("change", () => {
