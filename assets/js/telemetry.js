@@ -51,6 +51,8 @@
     baseName: "muted",
     baseLayer: null,
     hiddenLaps: new Set(),
+    coachChat: [],
+    coachBusy: false,
     lapLayers: {},
     zoomRange: null,
     highlightLayer: null,
@@ -1559,11 +1561,47 @@
         }
       }
     }
+    // Throttle pickup after the apex, coasting (neither pedal), and driver aids.
+    const hasPedals = channels.includes("throttle") && channels.includes("brake");
+    let throttleIndex = null;
+    if (channels.includes("throttle")) {
+      for (let i = apex; i <= zone.end; i += 1) {
+        if ((points[i].ch.throttle || 0) > 20) {
+          throttleIndex = i;
+          break;
+        }
+      }
+    }
+    let coast = 0;
+    let abs = false;
+    let eds = false;
+    let peakBrake = 0;
+    let lockTotal = 0;
+    let lockCount = 0;
+    for (let i = zone.start; i <= zone.end; i += 1) {
+      const { ch } = points[i];
+      if (hasPedals && (ch.throttle || 0) < 5 && (ch.brake || 0) < 3 && i > zone.start) coast += points[i].x - points[i - 1].x;
+      if (ch.abs) abs = true;
+      if (ch.eds) eds = true;
+      if (i <= apex) peakBrake = Math.max(peakBrake, usePressure ? ch.brake || 0 : -(ch.longG || 0));
+      if (i >= apex && ch.lock !== undefined && ch.lock !== null) {
+        lockTotal += ch.lock;
+        lockCount += 1;
+      }
+    }
     return {
+      apexX: points[apex].x,
+      entrySpeed: points[zone.start].speed,
       minSpeed: points[apex].speed,
       exitSpeed: points[zone.end].speed,
       time: points[zone.end].time - points[zone.start].time,
       brakeX: brake === null ? null : points[brake].x,
+      throttleX: throttleIndex === null ? null : points[throttleIndex].x,
+      coast: hasPedals ? coast : null,
+      abs,
+      eds,
+      peakBrake: useG || usePressure ? peakBrake : null,
+      exitLock: lockCount ? lockTotal / lockCount : null,
     };
   }
 
@@ -1625,6 +1663,313 @@
           ? `Biggest losses: ${worst.map((row) => `T${row.zone.number} (${formatSigned(row.dt, 2)} s)`).join(", ")}.`
           : "No corner loses more than 0.02 s."
       }`;
+    }
+  }
+
+  // ---- Coach ---------------------------------------------------------------
+
+  const COACH_URL = "https://car-duel-proxy.car-duel-proxy.workers.dev/coach";
+
+  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  const meters = (value) => `${Math.abs(value).toFixed(0)} m`;
+  const kph = (value) => `${Math.abs(value).toFixed(0)} km/h`;
+
+  // Rule-based tips for one corner: the compare lap ("you") against the
+  // reference ("your best"). Returns the single most useful tip, or null.
+  function cornerTip(row, channels) {
+    const { ref, cmp, dt, zone } = row;
+    const name = `T${zone.number}`;
+    const minDiff = cmp.minSpeed - ref.minSpeed;
+    const exitDiff = cmp.exitSpeed - ref.exitSpeed;
+    const brakeDiff = ref.brakeX !== null && cmp.brakeX !== null ? cmp.brakeX - ref.brakeX : null;
+    const throttleDiff = ref.throttleX !== null && cmp.throttleX !== null ? cmp.throttleX - cmp.apexX - (ref.throttleX - ref.apexX) : null;
+    const coastDiff = ref.coast !== null && cmp.coast !== null ? cmp.coast - ref.coast : null;
+    const tips = [];
+
+    if (cmp.abs && !ref.abs) {
+      tips.push({
+        weight: 3,
+        title: "ABS is working here",
+        detail: `ABS triggered in ${name} on this lap but not on your best. You're asking for more brake than the tyres have. Brake a little earlier or build pressure more smoothly.`,
+      });
+    }
+    if (brakeDiff !== null && brakeDiff > 5 && minDiff < -2) {
+      tips.push({
+        weight: 3,
+        title: "Overdriving the entry",
+        detail: `You brake ${meters(brakeDiff)} later than your best lap but are ${kph(minDiff)} slower at the apex${
+          exitDiff < -2 ? ` and ${kph(exitDiff)} slower on exit` : ""
+        }. The late braking costs more than it gains. Brake a touch earlier and focus on rolling speed to the apex.`,
+      });
+    } else if (brakeDiff !== null && brakeDiff < -5 && minDiff > -2) {
+      tips.push({
+        weight: 2.5,
+        title: "Braking too early",
+        detail: `You start braking ${meters(brakeDiff)} earlier than your best lap without carrying more speed through the corner. Move your brake point later.`,
+      });
+    }
+    if (minDiff < -3 && (brakeDiff === null || Math.abs(brakeDiff) <= 5)) {
+      tips.push({
+        weight: 2,
+        title: "Carry more apex speed",
+        detail: `Your minimum speed is ${kph(minDiff)} lower than your best lap (${cmp.minSpeed.toFixed(0)} vs ${ref.minSpeed.toFixed(
+          0
+        )} km/h) with a similar brake point. Release the brake earlier and let the car roll in.`,
+      });
+    }
+    if (throttleDiff !== null && throttleDiff > 8) {
+      tips.push({
+        weight: 2,
+        title: "Late on the throttle",
+        detail: `You pick up throttle ${meters(throttleDiff)} later after the apex than your best lap${
+          exitDiff < -2 ? `, and leave the corner ${kph(exitDiff)} slower` : ""
+        }. Commit to throttle earlier.`,
+      });
+    } else if (exitDiff < -4 && minDiff > 2) {
+      tips.push({
+        weight: 2.2,
+        title: "In fast, out slow",
+        detail: `You're ${kph(minDiff)} faster at the apex than your best lap but exit ${kph(
+          exitDiff
+        )} slower. The extra entry speed is costing you the exit. Give up a little entry speed to get the car turned and back on throttle sooner.`,
+      });
+    } else if (exitDiff < -4 && minDiff > -2) {
+      tips.push({
+        weight: 1.8,
+        title: "Slow exit",
+        detail: `Apex speed is fine, but you exit ${kph(exitDiff)} slower than your best lap. Straighten the wheel sooner and get to full throttle earlier.`,
+      });
+    }
+    if (coastDiff !== null && coastDiff > 15) {
+      tips.push({
+        weight: 1.5,
+        title: "Coasting",
+        detail: `You spend ${meters(cmp.coast)} on neither pedal here, ${meters(coastDiff)} more than your best lap. Blend brake release straight into throttle.`,
+      });
+    }
+    if (cmp.exitLock !== null && ref.exitLock !== null && ref.exitLock - cmp.exitLock > 15 && exitDiff < -2) {
+      tips.push({
+        weight: 1.2,
+        title: "Less AWD on exit",
+        detail: `Haldex lock averaged ${cmp.exitLock.toFixed(0)}% on exit vs ${ref.exitLock.toFixed(
+          0
+        )}% on your best lap. Less rear drive here lines up with the slower exit, so check the mode and throttle you used.`,
+      });
+    }
+    if (!tips.length) {
+      const parts = [];
+      if (Math.abs(minDiff) >= 1) parts.push(`apex ${formatSigned(minDiff, 0)} km/h`);
+      if (Math.abs(exitDiff) >= 1) parts.push(`exit ${formatSigned(exitDiff, 0)} km/h`);
+      if (brakeDiff !== null && Math.abs(brakeDiff) >= 3) parts.push(`braking ${meters(brakeDiff)} ${brakeDiff > 0 ? "later" : "earlier"}`);
+      tips.push({
+        weight: 1,
+        title: "Time lost",
+        detail: `No single clear cause. Compared with your best lap: ${parts.join(", ") || "very similar speeds"}. Check your line on the map.`,
+      });
+    }
+    tips.sort((a, b) => b.weight - a.weight);
+    return { ...tips[0], corner: name, zone, gain: dt };
+  }
+
+  function soloTips(rows) {
+    const tips = [];
+    rows.forEach((row) => {
+      const name = `T${row.zone.number}`;
+      if (row.ref.abs) {
+        tips.push({
+          corner: name,
+          zone: row.zone,
+          gain: null,
+          title: "ABS triggered",
+          detail: `ABS came on in ${name}. You're braking past the limit of grip.`,
+        });
+      }
+      if (row.ref.coast !== null && row.ref.coast > 25) {
+        tips.push({
+          corner: name,
+          zone: row.zone,
+          gain: null,
+          title: "Coasting",
+          detail: `${meters(row.ref.coast)} on neither pedal through ${name}. Blend brake release straight into throttle.`,
+        });
+      }
+    });
+    return tips;
+  }
+
+  function buildCoach(current) {
+    const rows = current.cornerRows || [];
+    const same = current.compare.id === current.reference.id;
+    const tips = same
+      ? soloTips(rows)
+      : rows
+          .filter((row) => row.dt > 0.03)
+          .sort((a, b) => b.dt - a.dt)
+          .slice(0, 6)
+          .map((row) => cornerTip(row, current.group.channels));
+    const sectors = current.comparisons.map((entry) => sectorTimes(entry));
+    const bestSectors = [0, 1, 2, 3].map((i) => Math.min(...sectors.map((s) => s[i])));
+    const theoretical = bestSectors.reduce((sum, value) => sum + value, 0);
+    const lostTotal = same ? 0 : rows.reduce((sum, row) => sum + Math.max(0, row.dt), 0);
+    let headline;
+    if (same) {
+      headline =
+        current.group.laps.length > 1
+          ? "Pick a different compare lap to get corner-by-corner coaching against this one."
+          : "Load a second lap (ideally a faster one) to get corner-by-corner coaching.";
+    } else {
+      headline = `${escapeHtml(current.compare.label)} is ${formatSigned(current.compare.lapTime - current.reference.lapTime, 2)} s off ${escapeHtml(
+        current.reference.label
+      )}. ${lostTotal > 0.05 ? `About ${lostTotal.toFixed(2)} s of that is lost in the corners below.` : ""}`;
+    }
+    const fastest = Math.min(...current.group.laps.map((lap) => lap.lapTime));
+    if (current.group.laps.length > 1 && fastest - theoretical > 0.05) {
+      headline += ` Your best four sectors add up to ${formatTime(theoretical)}, ${(fastest - theoretical).toFixed(2)} s quicker than your fastest lap.`;
+    }
+    return { tips, headline };
+  }
+
+  function updateCoach(current) {
+    const { tips, headline } = buildCoach(current);
+    current.coach = { tips, headline };
+    els.coachHeadline.innerHTML = headline;
+    els.coachTips.innerHTML = tips.length
+      ? tips
+          .map(
+            (tip) => `<li data-apex="${tip.zone ? tip.zone.apex : ""}">
+          <span class="telemetry-coach-corner">${tip.corner}</span>
+          <div><strong>${escapeHtml(tip.title)}</strong>${tip.gain !== null ? ` <em>${formatSigned(tip.gain, 2)} s</em>` : ""}<p>${escapeHtml(
+            tip.detail
+          )}</p></div>
+        </li>`
+          )
+          .join("")
+      : `<li class="is-empty">Nothing stands out. Load or pick another lap to compare against.</li>`;
+    resetCoachChat();
+  }
+
+  // Compact text summary of the comparison for the AI coach. Only these
+  // numbers leave the browser, never the raw log.
+  function coachSummary(current) {
+    const { reference, compare, group } = current;
+    const channels = group.channels.map((key) => CHANNEL_BY_KEY[key].label).join(", ") || "GPS speed only";
+    const lines = [
+      `Track length about ${Math.round(reference.distance)} m. Channels logged: ${channels}.`,
+      `Reference (best) lap: ${reference.label}, ${formatTime(reference.lapTime)}.`,
+      `Coached lap: ${compare.label}, ${formatTime(compare.lapTime)}${compare.id === reference.id ? " (same as reference)" : ""}.`,
+      `Other laps: ${
+        group.laps
+          .filter((lap) => lap.id !== reference.id && lap.id !== compare.id)
+          .map((lap) => formatTime(lap.lapTime))
+          .join(", ") || "none"
+      }.`,
+      "",
+      "Corners (distance of apex along the lap; ref = reference lap, you = coached lap):",
+    ];
+    (current.cornerRows || []).forEach((row) => {
+      const f = (metrics) =>
+        [
+          `entry ${metrics.entrySpeed.toFixed(0)}`,
+          `min ${metrics.minSpeed.toFixed(0)}`,
+          `exit ${metrics.exitSpeed.toFixed(0)} km/h`,
+          metrics.brakeX !== null ? `brakes ${Math.round(metrics.apexX - metrics.brakeX)} m before apex` : null,
+          metrics.peakBrake !== null && metrics.peakBrake > 0
+            ? group.channels.includes("brake")
+              ? `peak brake ${metrics.peakBrake.toFixed(0)} bar`
+              : `peak decel ${metrics.peakBrake.toFixed(2)} G`
+            : null,
+          metrics.throttleX !== null ? `throttle ${Math.round(metrics.throttleX - metrics.apexX)} m after apex` : null,
+          metrics.coast !== null ? `coasting ${Math.round(metrics.coast)} m` : null,
+          metrics.abs ? "ABS active" : null,
+          metrics.eds ? "EDS/XDS active" : null,
+          metrics.exitLock !== null ? `Haldex lock on exit ${metrics.exitLock.toFixed(0)}%` : null,
+          `time in corner ${metrics.time.toFixed(2)} s`,
+        ]
+          .filter(Boolean)
+          .join(", ");
+      lines.push(`T${row.zone.number} at ${Math.round(current.xs[row.zone.apex])} m:`);
+      lines.push(`  ref: ${f(row.ref)}`);
+      if (compare.id !== reference.id) lines.push(`  you: ${f(row.cmp)}; time vs ref ${formatSigned(row.dt, 2)} s`);
+    });
+    if (current.coach && current.coach.tips.length) {
+      lines.push("", "Automatic tips already shown to the driver:");
+      current.coach.tips.forEach((tip) => lines.push(`- ${tip.corner} ${tip.title}: ${tip.detail}`));
+    }
+    return lines.join("\n").slice(0, 12000);
+  }
+
+  function formatCoachText(text) {
+    return escapeHtml(text)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .split(/\n{2,}/)
+      .map((block) => {
+        const items = block.split("\n");
+        if (items.every((item) => /^\s*([-*•]|\d+\.)\s+/.test(item))) {
+          return `<ul>${items.map((item) => `<li>${item.replace(/^\s*([-*•]|\d+\.)\s+/, "")}</li>`).join("")}</ul>`;
+        }
+        return `<p>${items.join("<br>")}</p>`;
+      })
+      .join("");
+  }
+
+  function renderCoachChat() {
+    els.coachChat.innerHTML = state.coachChat
+      .map((message, index) =>
+        index === 0 && message.role === "user"
+          ? ""
+          : `<div class="telemetry-coach-msg is-${message.role}">${message.role === "assistant" ? formatCoachText(message.content) : escapeHtml(message.content)}</div>`
+      )
+      .join("");
+    els.coachChat.hidden = !state.coachChat.length;
+  }
+
+  function resetCoachChat() {
+    state.coachChat = [];
+    state.coachBusy = false;
+    if (!els.coachChat) return;
+    renderCoachChat();
+    els.coachForm.hidden = true;
+    els.coachAsk.hidden = false;
+    els.coachAsk.disabled = false;
+    els.coachStatus.textContent = "";
+  }
+
+  async function askCoach(question) {
+    const current = state.current;
+    if (!current || state.coachBusy) return;
+    if (!state.coachChat.length) {
+      state.coachChat.push({
+        role: "user",
+        content: "Give me a short debrief of this lap: the 2 or 3 changes that would gain the most time, in order.",
+      });
+    } else if (question) {
+      state.coachChat.push({ role: "user", content: question.slice(0, 1500) });
+    } else return;
+    renderCoachChat();
+    state.coachBusy = true;
+    els.coachAsk.disabled = true;
+    els.coachSend.disabled = true;
+    els.coachStatus.textContent = "Coach is thinking…";
+    try {
+      const response = await fetch(COACH_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ summary: coachSummary(current), messages: state.coachChat.slice(-12) }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.text) throw new Error((data.error && data.error.message) || `Coach unavailable (${response.status}).`);
+      state.coachChat.push({ role: "assistant", content: data.text });
+      els.coachStatus.textContent = "";
+      els.coachAsk.hidden = true;
+      els.coachForm.hidden = false;
+    } catch (error) {
+      state.coachChat.pop();
+      els.coachStatus.textContent = error.message || "The AI coach could not be reached.";
+      els.coachAsk.disabled = false;
+    } finally {
+      state.coachBusy = false;
+      els.coachSend.disabled = false;
+      renderCoachChat();
     }
   }
 
@@ -1732,6 +2077,7 @@
     updateMapModeOptions(group);
     updateMap(state.current);
     updateSectors(comparisons, reference);
+    updateCoach(state.current);
     setCursor(state.cursorIndex);
   }
 
@@ -1835,6 +2181,14 @@
       cornerTimeHeading: byId("telemetry-corner-time-heading"),
       sectorBody: byId("telemetry-sector-body"),
       theoretical: byId("telemetry-theoretical"),
+      coachHeadline: byId("telemetry-coach-headline"),
+      coachTips: byId("telemetry-coach-tips"),
+      coachAsk: byId("telemetry-coach-ask"),
+      coachStatus: byId("telemetry-coach-status"),
+      coachChat: byId("telemetry-coach-chat"),
+      coachForm: byId("telemetry-coach-form"),
+      coachInput: byId("telemetry-coach-input"),
+      coachSend: byId("telemetry-coach-send"),
     });
     els.files.addEventListener("change", () => loadFiles(els.files.files));
     ["dragenter", "dragover"].forEach((event) =>
@@ -1918,6 +2272,23 @@
     });
     els.lapLegend.addEventListener("mouseleave", () => highlightLap(null));
     els.zoomReset.addEventListener("click", resetZoom);
+    els.coachTips.addEventListener("click", (event) => {
+      const item = event.target.closest("li[data-apex]");
+      if (!item || !item.dataset.apex || !state.current) return;
+      const row = (state.current.cornerRows || []).find((candidate) => candidate.zone.apex === Number(item.dataset.apex));
+      if (row) {
+        zoomToCorner(row.zone);
+        els.mapPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+    els.coachAsk.addEventListener("click", () => askCoach());
+    els.coachForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const question = els.coachInput.value.trim();
+      if (!question) return;
+      els.coachInput.value = "";
+      askCoach(question);
+    });
     els.replayButton.addEventListener("click", toggleReplay);
     els.replaySpeed.addEventListener("change", () => {
       state.replay.speed = Number(els.replaySpeed.value) || 1;

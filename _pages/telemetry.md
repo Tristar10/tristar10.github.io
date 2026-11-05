@@ -18,12 +18,12 @@ map: true
       <h1>Find the time hiding in every corner.</h1>
       <p class="telemetry-lede">
         Drop in RaceChrono CSV or VBO exports to compare speed, time delta, corners, and driving lines. OpenHaldex channels (lock, mode, pedal, brake, steering and more) show up automatically when they were logged.
-        Analysis happens entirely in your browser; your files never leave your device.
+        Analysis happens in your browser and your files never leave your device (the optional AI coach sends only a short summary of corner numbers).
       </p>
     </div>
     <div class="telemetry-stat" aria-label="Privacy information">
       <span class="telemetry-stat-value">100%</span>
-      <span class="telemetry-stat-label">local processing</span>
+      <span class="telemetry-stat-label">local file processing</span>
     </div>
   </section>
 
@@ -155,6 +155,31 @@ map: true
           </table>
         </div>
         <p class="telemetry-theoretical" id="telemetry-corner-summary"></p>
+      </article>
+
+      <article class="telemetry-panel telemetry-panel-wide telemetry-panel-coach" id="telemetry-coach-panel">
+        <div class="telemetry-panel-heading">
+          <div>
+            <p class="telemetry-kicker">COACH</p>
+            <h2>What to work on</h2>
+          </div>
+          <span>compare lap vs reference</span>
+        </div>
+        <p class="telemetry-coach-headline" id="telemetry-coach-headline"></p>
+        <ol class="telemetry-coach-tips" id="telemetry-coach-tips"></ol>
+        <div class="telemetry-coach-ai">
+          <div class="telemetry-coach-chat" id="telemetry-coach-chat" hidden></div>
+          <button type="button" class="telemetry-coach-ask" id="telemetry-coach-ask">Ask the AI coach</button>
+          <form class="telemetry-coach-form" id="telemetry-coach-form" hidden>
+            <input id="telemetry-coach-input" type="text" maxlength="1500" placeholder="Ask a follow-up, e.g. why am I slow in T4?" autocomplete="off">
+            <button type="submit" id="telemetry-coach-send">Send</button>
+          </form>
+          <p class="telemetry-coach-status" id="telemetry-coach-status" role="status" aria-live="polite"></p>
+          <p class="telemetry-coach-note">
+            The tips above are worked out in your browser. The AI coach is optional: only when you press it, a short text summary of the corner
+            numbers (no GPS trace or raw log) is sent to an AI model to write the debrief.
+          </p>
+        </div>
       </article>
 
       <article class="telemetry-panel telemetry-panel-sectors">
