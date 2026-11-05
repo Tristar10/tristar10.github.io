@@ -3,8 +3,8 @@ layout: page
 title: Apps
 permalink: /apps/
 description: Interactive tools you can use in the browser.
-# Set this to Car Duel's hosted URL (e.g. its Railway or Render address) to make the card live.
-car_duel_url: ""
+# Car Duel is served from car-duel/ (copied from Tristar10/Car-Guessing docs/). Empty = "Launching soon".
+car_duel_url: /car-duel/
 nav: true
 nav_order: 4
 dropdown: true
