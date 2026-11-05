@@ -216,7 +216,121 @@
 .telemetry-grid {
   display: grid;
   gap: 1px;
+  grid-auto-flow: row dense;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.telemetry-panel-wide {
+  grid-column: 1 / -1;
+}
+
+.telemetry-panel[hidden] {
+  display: none;
+}
+
+.telemetry-channel-select {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed var(--telemetry-muted);
+  color: var(--telemetry-ink);
+  cursor: pointer;
+  font: inherit;
+  max-width: 100%;
+  padding: 0 0.1rem;
+}
+
+.telemetry-map-legend i {
+  border-radius: 2px;
+  display: inline-block;
+  height: 8px;
+  margin: 0 0.25rem 0 0.5rem;
+  width: 14px;
+}
+
+.telemetry-chart-square {
+  height: 320px;
+}
+
+.telemetry-chart-square canvas {
+  max-height: 320px;
+}
+
+.telemetry-corner-table tbody tr {
+  cursor: pointer;
+}
+
+.telemetry-corner-table tbody tr:hover {
+  background: var(--telemetry-accent-soft);
+}
+
+.telemetry-corner-table tbody tr.is-worst td:first-child {
+  box-shadow: inset 3px 0 0 #d73027;
+}
+
+.telemetry-corner-table small {
+  color: var(--telemetry-muted);
+  margin-left: 0.3rem;
+}
+
+.telemetry-table td.is-loss {
+  color: #d73027;
+  font-weight: 700;
+}
+
+.telemetry-table td.is-gain {
+  color: #1a9850;
+  font-weight: 700;
+}
+
+.telemetry-readout {
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--telemetry-card) 92%, transparent);
+  border: 1px solid var(--telemetry-line);
+  border-radius: 10px;
+  bottom: 0.75rem;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  gap: 0.4rem 0.75rem;
+  margin-top: 1rem;
+  padding: 0.55rem 0.75rem;
+  position: sticky;
+  z-index: 20;
+}
+
+.telemetry-readout[hidden] {
+  display: none;
+}
+
+.telemetry-readout-title {
+  color: var(--telemetry-muted);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.telemetry-readout-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.9rem;
+}
+
+.telemetry-readout-chip {
+  border-left: 3px solid var(--chip-color);
+  padding-left: 0.4rem;
+  white-space: nowrap;
+}
+
+.telemetry-readout-chip b {
+  display: inline-block;
+  margin-right: 0.3rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 
 #telemetry-speed-panel.is-overlay {
