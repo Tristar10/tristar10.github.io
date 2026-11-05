@@ -171,15 +171,19 @@
 
     const headers = parseCsvLine(lines[headerIndex]);
     const timeIndex = findColumn(headers, ["elapsed time", "session time", "timestamp", "time"]);
-    const speedIndex = findColumn(headers, ["speed"], true);
     const lapIndex = findColumn(headers, ["lap number", "lap"]);
     const distanceIndex = findColumn(headers, ["distance traveled", "distance"]);
     const latIndex = findColumn(headers, ["latitude", "lat"]);
     const lonIndex = findColumn(headers, ["longitude", "lon", "lng"]);
-    if (timeIndex < 0 || speedIndex < 0) throw new Error(`${filename}: time or speed column is missing.`);
 
     const units = parseCsvLine(lines[headerIndex + 1] || "");
     const sources = parseCsvLine(lines[headerIndex + 2] || "");
+    // RaceChrono can export several speed columns (GPS, calculated, OBD). OBD
+    // speed is often empty, so prefer the calculated, then GPS one.
+    const speedColumns = headers.map((header, index) => index).filter((index) => normalize(headers[index]).includes("speed"));
+    const speedBySource = (pattern) => speedColumns.find((index) => pattern.test(normalize(sources[index])));
+    const speedIndex = speedBySource(/calc/) ?? speedBySource(/gps/) ?? (speedColumns.length ? speedColumns[speedColumns.length - 1] : -1);
+    if (timeIndex < 0 || speedIndex < 0) throw new Error(`${filename}: time or speed column is missing.`);
     const speedUnit = normalize(units[speedIndex] || headers[speedIndex]);
     const channelMap = resolveChannels(headers.map((name, index) => ({ name, source: sources[index] || "" })));
     const rows = [];
@@ -788,22 +792,30 @@
     const speedRange = Math.max(...smoothed) - Math.min(...smoothed);
     const minProminence = Math.max(4, speedRange * 0.07);
     const minSeparation = Math.max(35, lapDistance * 0.018);
-    const windowSize = Math.max(4, Math.round(40 / step));
+    // Prominence: how far speed recovers (or drops) on both sides before the
+    // trace passes this point again, looking up to ~15% of the lap each way.
+    // This catches long fast sweepers on road courses as well as tight
+    // autocross elements.
+    const reach = Math.max(4, Math.round(Math.max(80, lapDistance * 0.15) / step));
+    const sideExtreme = (index, direction, isCorner) => {
+      const value = smoothed[index];
+      let extreme = value;
+      for (let i = index + direction, n = 0; i >= 0 && i < smoothed.length && n < reach; i += direction, n += 1) {
+        if (isCorner ? smoothed[i] < value : smoothed[i] > value) break;
+        extreme = isCorner ? Math.max(extreme, smoothed[i]) : Math.min(extreme, smoothed[i]);
+      }
+      return extreme;
+    };
     const candidates = [];
 
     for (let index = 2; index < smoothed.length - 2; index += 1) {
       const value = smoothed[index];
-      const start = Math.max(0, index - windowSize);
-      const end = Math.min(smoothed.length - 1, index + windowSize);
-      let nearbyMax = -Infinity;
-      let nearbyMin = Infinity;
-      for (let i = start; i <= end; i += 1) {
-        nearbyMax = Math.max(nearbyMax, smoothed[i]);
-        nearbyMin = Math.min(nearbyMin, smoothed[i]);
-      }
       const isCorner = value <= smoothed[index - 1] && value < smoothed[index + 1];
       const isStraight = value >= smoothed[index - 1] && value > smoothed[index + 1];
-      const prominence = isCorner ? nearbyMax - value : isStraight ? value - nearbyMin : 0;
+      if (!isCorner && !isStraight) continue;
+      const left = sideExtreme(index, -1, isCorner);
+      const right = sideExtreme(index, 1, isCorner);
+      const prominence = isCorner ? Math.min(left, right) - value : value - Math.max(left, right);
       if (prominence >= minProminence) {
         const point = points[index];
         candidates.push({
@@ -862,7 +874,11 @@
     lap.samples.forEach((sample) => {
       if (sample.lat === null || sample.lon === null) return;
       const point = [sample.lat, sample.lon];
-      if (points.length && geoDistance(points[points.length - 1], point) > 200) return;
+      if (points.length) {
+        const gap = geoDistance(points[points.length - 1], point);
+        // Skip GPS jumps, and thin out high-rate logs to about one point per metre.
+        if (gap > 200 || gap < 1) return;
+      }
       points.push(point);
     });
     return points;
@@ -895,7 +911,7 @@
     if (refLine.length > 1) {
       const layer = L.polyline(refLine, { color: "#555", opacity: 0.35, weight: 2, dashArray: "4 4" }).addTo(state.map);
       state.mapLayers.push(layer);
-      bounds.push(...refLine);
+      refLine.forEach((point) => bounds.push(point));
     }
     const rates = gainRates(compare, current.xs);
     let run = null;
@@ -903,7 +919,7 @@
       if (run && run.points.length > 1) {
         const layer = L.polyline(run.points, { color: GAIN_COLORS[run.bucket], opacity: 0.95, weight: 5, lineCap: "butt" }).addTo(state.map);
         state.mapLayers.push(layer);
-        bounds.push(...run.points);
+        run.points.forEach((point) => bounds.push(point));
       }
     };
     compare.points.forEach((point, i) => {
@@ -980,7 +996,7 @@
           markerLayer.addTo(state.map);
           state.mapLayers.push(markerLayer);
         });
-        bounds.push(...points);
+        points.forEach((point) => bounds.push(point));
       });
     }
 
@@ -1209,7 +1225,7 @@
 
   function updateKpis(group, reference) {
     const fastest = group.laps.reduce((best, lap) => (lap.lapTime < best.lapTime ? lap : best));
-    const maxSpeed = Math.max(...group.laps.flatMap((lap) => lap.samples.map((sample) => sample.speedKph)));
+    const maxSpeed = group.laps.reduce((max, lap) => lap.samples.reduce((lapMax, sample) => Math.max(lapMax, sample.speedKph), max), 0);
     const averageSpeed = reference.samples.reduce((sum, sample) => sum + sample.speedKph, 0) / reference.samples.length;
     els.kpis.innerHTML = [
       ["Fastest lap", formatTime(fastest.lapTime)],
