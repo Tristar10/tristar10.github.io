@@ -51,6 +51,7 @@
     baseName: "muted",
     baseLayer: null,
     hiddenLaps: new Set(),
+    lapLayers: {},
     zoomRange: null,
     highlightLayer: null,
     drag: null,
@@ -495,6 +496,12 @@
         delta: points.map((point, i) => ({ x: point.x, y: point.time - ref[i].time })),
       };
     });
+    comparisons
+      .slice()
+      .sort((a, b) => a.lap.lapTime - b.lap.lapTime)
+      .forEach((entry, index) => {
+        entry.badge = index + 1;
+      });
     return { xs, comparisons };
   }
 
@@ -629,6 +636,7 @@
     els.readout.hidden = false;
     els.readoutTitle.textContent = `${Math.round(x)} m · ${Math.round((i / GRID_POINTS) * 100)}% of lap`;
     els.readoutBody.innerHTML = current.comparisons
+      .filter((entry) => !state.hiddenLaps.has(entry.lap.id))
       .map((entry) => {
         const point = entry.points[i];
         const delta = entry.delta[i].y;
@@ -688,7 +696,8 @@
       delete state.charts[name];
     });
     const datasets = comparisons.map((entry) => ({
-      label: `${entry.lap.label} (${formatTime(entry.lap.lapTime)})`,
+      label: `#${entry.badge} ${entry.lap.label} (${formatTime(entry.lap.lapTime)})`,
+      hidden: state.hiddenLaps.has(entry.lap.id),
       data: entry.speed,
       borderColor: entry.color,
       backgroundColor: entry.color,
@@ -696,7 +705,8 @@
       pointRadius: 0,
     }));
     const deltaSets = comparisons.map((entry) => ({
-      label: `${state.overlayDelta ? "Δ " : ""}${entry.lap.label}`,
+      label: `${state.overlayDelta ? "Δ " : ""}#${entry.badge} ${entry.lap.label}`,
+      hidden: state.hiddenLaps.has(entry.lap.id),
       data: entry.delta,
       borderColor: entry.color,
       backgroundColor: entry.color,
@@ -736,7 +746,8 @@
     const datasets = current.comparisons
       .filter((entry) => entry.lap.channels.includes(key))
       .map((entry) => ({
-        label: entry.lap.label,
+        label: `#${entry.badge} ${entry.lap.label}`,
+        hidden: state.hiddenLaps.has(entry.lap.id),
         data: entry.points.map((point) => ({ x: point.x, y: point.ch[key] })),
         borderColor: entry.color,
         backgroundColor: entry.color,
@@ -1025,23 +1036,71 @@
     return `<span class="telemetry-gradient-key">${format(low)}<b style="background:linear-gradient(90deg,${VALUE_COLORS.join(",")})"></b>${format(high)}</span>`;
   }
 
+  const lapBadgeHtml = (entry) => `<span class="telemetry-lap-badge" style="--chip-color:${entry.color}">${entry.badge}</span>`;
+
+  function lapStyle(entry, current, emphasis) {
+    const key = isKeyLap(entry, current);
+    const weight = key ? 5 : 3.5;
+    if (emphasis === "focus") return { line: { opacity: 1, weight: weight + 2 }, casing: { opacity: 0.95, weight: weight + 6 } };
+    if (emphasis === "fade") return { line: { opacity: 0.12, weight }, casing: { opacity: 0, weight: weight + 4 } };
+    return { line: { opacity: 0.95, weight }, casing: { opacity: 0.85, weight: weight + 4 } };
+  }
+
+  // Emphasises one lap on the map (hover a line or a legend chip) and fades the rest.
+  function highlightLap(id) {
+    const current = state.current;
+    if (!current || !state.lapLayers) return;
+    Object.entries(state.lapLayers).forEach(([lapId, layers]) => {
+      const emphasis = id === null ? "normal" : lapId === id ? "focus" : "fade";
+      const style = lapStyle(layers.entry, current, emphasis);
+      layers.casing.setStyle(style.casing);
+      layers.line.setStyle(style.line);
+      if (layers.tag) layers.tag.setOpacity(emphasis === "fade" ? 0.15 : 1);
+    });
+    if (id !== null && state.lapLayers[id]) {
+      state.lapLayers[id].casing.bringToFront();
+      state.lapLayers[id].line.bringToFront();
+    }
+    els.lapLegend.querySelectorAll("[data-id]").forEach((chip) => {
+      chip.classList.toggle("is-focus", id !== null && decodeURIComponent(chip.dataset.id) === id);
+    });
+  }
+
   function drawLapLines(current, bounds) {
-    current.comparisons
-      .filter((entry) => !state.hiddenLaps.has(entry.lap.id))
+    state.lapLayers = {};
+    const visible = current.comparisons.filter((entry) => !state.hiddenLaps.has(entry.lap.id));
+    visible
+      .slice()
       .sort((a, b) => Number(isKeyLap(a, current)) - Number(isKeyLap(b, current)))
       .forEach((entry) => {
         const line = lapPolyline(entry.lap);
         if (line.length < 2) return;
-        const key = isKeyLap(entry, current);
-        addMapLayer(
-          L.polyline(line, { color: entry.color, opacity: key ? 0.95 : 0.35, weight: key ? 4 : 2.5 }).bindTooltip(
-            `${escapeHtml(entry.lap.label)} · ${formatTime(entry.lap.lapTime)}`,
+        const style = lapStyle(entry, current, "normal");
+        const casing = addMapLayer(L.polyline(line, { color: "#fff", lineCap: "round", interactive: false, ...style.casing }));
+        const polyline = addMapLayer(
+          L.polyline(line, { color: entry.color, lineCap: "round", ...style.line }).bindTooltip(
+            `#${entry.badge} ${escapeHtml(entry.lap.label)} · ${formatTime(entry.lap.lapTime)}`,
             { sticky: true }
           )
         );
+        polyline.on("mouseover", () => highlightLap(entry.lap.id));
+        polyline.on("mouseout", () => highlightLap(null));
+        state.lapLayers[entry.lap.id] = { entry, casing, line: polyline, tag: null };
         line.forEach((point) => bounds.push(point));
       });
-    return current.compare.id === current.reference.id ? "" : "Bold: reference + compare lap";
+    // A numbered tag on each line, spread around the lap so they don't stack.
+    const count = current.comparisons.length;
+    visible.forEach((entry) => {
+      const fraction = count === 1 ? 0.15 : 0.1 + (0.8 * (entry.badge - 1)) / (count - 1);
+      const point = entry.points[Math.round(fraction * GRID_POINTS)];
+      if (!point || point.lat === null || !state.lapLayers[entry.lap.id]) return;
+      const tag = addMapLayer(mapLabel([point.lat, point.lon], lapBadgeHtml(entry), "is-lap-tag"));
+      tag.bindTooltip(`#${entry.badge} ${escapeHtml(entry.lap.label)} · ${formatTime(entry.lap.lapTime)}`, { direction: "top", offset: [0, -10] });
+      tag.on("mouseover", () => highlightLap(entry.lap.id));
+      tag.on("mouseout", () => highlightLap(null));
+      state.lapLayers[entry.lap.id].tag = tag;
+    });
+    return "Hover a line or a lap below to pick it out";
   }
 
   function bearing(a, b) {
@@ -1128,6 +1187,7 @@
 
   function updateMap(current) {
     if (!ensureMap()) return;
+    state.lapLayers = {};
     state.mapLayers.forEach((layer) => layer.remove());
     state.cursorMarkers.forEach(({ marker }) => marker.remove());
     state.mapLayers = [];
@@ -1177,19 +1237,35 @@
   }
 
   function updateLapLegend(current) {
-    els.lapLegend.innerHTML = current.comparisons
-      .slice()
-      .sort((a, b) => a.lap.lapTime - b.lap.lapTime)
-      .map((entry) => {
-        const hidden = state.hiddenLaps.has(entry.lap.id);
-        const role = entry.lap.id === current.reference.id ? "ref" : entry.lap.id === current.compare.id ? "compare" : "";
-        return `<button type="button" class="telemetry-lap-chip${hidden ? " is-hidden" : ""}${role ? " is-key" : ""}" data-id="${encodeURIComponent(
-          entry.lap.id
-        )}" style="--chip-color:${entry.color}" aria-pressed="${!hidden}" title="${hidden ? "Show" : "Hide"} on map">
-          <i></i>${escapeHtml(entry.lap.label)} <small>${formatTime(entry.lap.lapTime)}${role ? ` · ${role}` : ""}</small>
-        </button>`;
-      })
-      .join("");
+    const anyHidden = current.comparisons.some((entry) => state.hiddenLaps.has(entry.lap.id));
+    els.lapLegend.innerHTML =
+      current.comparisons
+        .slice()
+        .sort((a, b) => a.badge - b.badge)
+        .map((entry) => {
+          const hidden = state.hiddenLaps.has(entry.lap.id);
+          const role = entry.lap.id === current.reference.id ? "ref" : entry.lap.id === current.compare.id ? "compare" : "";
+          return `<button type="button" class="telemetry-lap-chip${hidden ? " is-hidden" : ""}${role ? " is-key" : ""}" data-id="${encodeURIComponent(
+            entry.lap.id
+          )}" style="--chip-color:${entry.color}" aria-pressed="${!hidden}" title="Click to ${hidden ? "show" : "hide"} · double-click to show only this lap">
+            ${lapBadgeHtml(entry)}${escapeHtml(entry.lap.label)} <small>${formatTime(entry.lap.lapTime)}${role ? ` · ${role}` : ""}</small>
+          </button>`;
+        })
+        .join("") +
+      (anyHidden ? `<button type="button" class="telemetry-lap-show-all" data-action="all">Show all</button>` : "") +
+      `<span class="telemetry-lap-legend-hint">Click to hide/show · double-click to solo</span>`;
+  }
+
+  function setLapVisibility(update) {
+    if (!state.current) return;
+    update();
+    const current = state.current;
+    if (current.comparisons.every((entry) => state.hiddenLaps.has(entry.lap.id))) state.hiddenLaps.clear();
+    updateCharts(current.comparisons, current.reference);
+    updateChannelChart();
+    updateMap(current);
+    updateCursorMarkers();
+    updateReadout();
   }
 
   // ---- Zoom to a stretch of track -----------------------------------------
@@ -1802,15 +1878,45 @@
       state.baseName = els.mapBase.value;
       setBaseLayer(state.baseName);
     });
+    // One click toggles a lap; a second click on the same lap within 250 ms
+    // shows only that lap. (Detected here because toggling re-renders the chips.)
+    let pendingChip = null;
     els.lapLegend.addEventListener("click", (event) => {
+      if (event.target.closest("[data-action='all']")) {
+        setLapVisibility(() => state.hiddenLaps.clear());
+        return;
+      }
       const chip = event.target.closest("[data-id]");
       if (!chip || !state.current) return;
       const id = decodeURIComponent(chip.dataset.id);
-      if (state.hiddenLaps.has(id)) state.hiddenLaps.delete(id);
-      else state.hiddenLaps.add(id);
-      updateMap(state.current);
-      updateCursorMarkers();
+      if (pendingChip && pendingChip.id === id) {
+        window.clearTimeout(pendingChip.timer);
+        pendingChip = null;
+        setLapVisibility(() => {
+          state.hiddenLaps.clear();
+          state.current.comparisons.forEach((entry) => {
+            if (entry.lap.id !== id) state.hiddenLaps.add(entry.lap.id);
+          });
+        });
+        return;
+      }
+      if (pendingChip) window.clearTimeout(pendingChip.timer);
+      pendingChip = {
+        id,
+        timer: window.setTimeout(() => {
+          pendingChip = null;
+          setLapVisibility(() => {
+            if (state.hiddenLaps.has(id)) state.hiddenLaps.delete(id);
+            else state.hiddenLaps.add(id);
+          });
+        }, 250),
+      };
     });
+    els.lapLegend.addEventListener("mouseover", (event) => {
+      const chip = event.target.closest("[data-id]");
+      highlightLap(chip && !chip.classList.contains("is-hidden") ? decodeURIComponent(chip.dataset.id) : null);
+    });
+    els.lapLegend.addEventListener("mouseleave", () => highlightLap(null));
     els.zoomReset.addEventListener("click", resetZoom);
     els.replayButton.addEventListener("click", toggleReplay);
     els.replaySpeed.addEventListener("change", () => {

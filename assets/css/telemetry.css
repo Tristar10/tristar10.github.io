@@ -813,11 +813,6 @@ body.telemetry-panel-open {
   text-decoration: line-through;
 }
 
-.telemetry-lap-chip.is-hidden i {
-  background: transparent;
-  border: 2px solid var(--chip-color);
-}
-
 .telemetry-gradient-key {
   align-items: center;
   display: inline-flex;
@@ -908,4 +903,56 @@ body.telemetry-panel-open {
   #telemetry-map {
     height: 340px;
   }
+}
+
+.telemetry-lap-badge {
+  align-items: center;
+  background: var(--chip-color);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  display: inline-flex;
+  flex: none;
+  font-size: 10px;
+  font-weight: 800;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  width: 20px;
+}
+
+.telemetry-lap-chip.is-hidden .telemetry-lap-badge {
+  background: transparent;
+  border-color: var(--chip-color);
+  color: var(--chip-color);
+}
+
+.telemetry-lap-chip.is-focus {
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--telemetry-card));
+}
+
+.telemetry-map-label.is-lap-tag > span {
+  cursor: pointer;
+  display: flex;
+  height: 22px;
+  width: 22px;
+}
+
+.telemetry-lap-show-all {
+  background: transparent;
+  border: 1px dashed var(--telemetry-muted);
+  border-radius: 999px;
+  color: var(--telemetry-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 0.25rem 0.7rem;
+}
+
+.telemetry-lap-legend-hint {
+  align-self: center;
+  color: var(--telemetry-muted);
+  font-size: 0.7rem;
+  margin-left: auto;
 }
