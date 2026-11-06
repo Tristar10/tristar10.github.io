@@ -56,6 +56,7 @@ map: true
         <input id="telemetry-overlay-delta" type="checkbox">
         Overlay delta on speed
       </label>
+      <button class="telemetry-reset telemetry-report-button" id="telemetry-report-button" type="button">Report / PDF</button>
       <button class="telemetry-reset" id="telemetry-reset" type="button">Clear files</button>
     </div>
 
@@ -148,7 +149,7 @@ map: true
           <table class="telemetry-table telemetry-corner-table">
             <thead>
               <tr>
-                <th>Corner</th><th>Ref min km/h</th><th>Lap min km/h</th><th>Min Δ</th><th>Exit Δ</th><th>Braking</th><th id="telemetry-corner-time-heading">Time Δ (s)</th>
+                <th>Corner</th><th>Ref min km/h</th><th>Lap min km/h</th><th>Min Δ</th><th>Exit Δ</th><th>Braking</th><th title="Your line at the apex compared with the reference lap">Line</th><th title="Average share of the grip the car showed this session, while cornering or braking (reference / you)">Grip used</th><th id="telemetry-corner-time-heading">Time Δ (s)</th>
               </tr>
             </thead>
             <tbody id="telemetry-corner-body"></tbody>

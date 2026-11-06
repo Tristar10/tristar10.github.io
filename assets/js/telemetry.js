@@ -746,7 +746,7 @@
     const channel = CHANNEL_BY_KEY[key];
     els.channelUnit.textContent = channel.mode ? MODE_NAMES.map((name, i) => `${i} ${name}`).join(" · ") : channel.unit || "";
     const datasets = current.comparisons
-      .filter((entry) => entry.lap.channels.includes(key))
+      .filter((entry) => entry.lap.channels.includes(key) || (entry.derived || []).includes(key))
       .map((entry) => ({
         label: `#${entry.badge} ${entry.lap.label}`,
         hidden: state.hiddenLaps.has(entry.lap.id),
@@ -797,6 +797,21 @@
       };
     });
     limit = Math.ceil(limit * 10 + 1) / 10;
+    if (current.gripEnvelope) {
+      const ring = [];
+      for (let a = 0; a <= 64; a += 1)
+        ring.push({ x: current.gripEnvelope * Math.cos((a / 64) * 2 * Math.PI), y: current.gripEnvelope * Math.sin((a / 64) * 2 * Math.PI) });
+      datasets.push({
+        type: "line",
+        label: `Grip seen this session (${current.gripEnvelope.toFixed(2)} G)`,
+        data: ring,
+        borderColor: "rgba(127,127,127,.7)",
+        borderDash: [5, 4],
+        borderWidth: 1.5,
+        pointRadius: 0,
+        fill: false,
+      });
+    }
     const axis = (title) => ({
       type: "linear",
       min: -limit,
@@ -1519,6 +1534,146 @@
     });
   }
 
+  // ---- Derived channels: line offset and grip usage ------------------------
+
+  CHANNEL_BY_KEY.lineOffset = { key: "lineOffset", label: "Line offset vs reference", unit: "m", digits: 1 };
+  CHANNEL_BY_KEY.gripUse = { key: "gripUse", label: "Grip used", unit: "%", digits: 0 };
+  CHANNEL_BY_KEY.combinedG = { key: "combinedG", label: "Combined G", unit: "G", digits: 2 };
+
+  function localProjector(lat0, lon0) {
+    const kx = Math.cos((lat0 * Math.PI) / 180) * 111320;
+    const ky = 110540;
+    return (lat, lon) => [(lon - lon0) * kx, (lat - lat0) * ky];
+  }
+
+  // Signed distance (m) from each grid point of `entry` to the reference line:
+  // positive = left of the reference's direction of travel, negative = right.
+  function lineOffsets(entry, refEntry, project) {
+    const ref = refEntry.points.map((point) => (point.lat === null ? null : project(point.lat, point.lon)));
+    const n = ref.length;
+    const window = Math.max(40, Math.round(n * 0.06));
+    return entry.points.map((point, i) => {
+      if (point.lat === null) return null;
+      const p = project(point.lat, point.lon);
+      let best = null;
+      for (let j = Math.max(0, i - window); j < Math.min(n - 1, i + window); j += 1) {
+        const a = ref[j];
+        const b = ref[j + 1];
+        if (!a || !b) continue;
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const length2 = dx * dx + dy * dy;
+        const t = length2 > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length2)) : 0;
+        const qx = a[0] + t * dx;
+        const qy = a[1] + t * dy;
+        const distance = Math.hypot(p[0] - qx, p[1] - qy);
+        if (!best || distance < best.distance) {
+          const side = dx * (p[1] - a[1]) - dy * (p[0] - a[0]);
+          best = { distance, signed: side >= 0 ? distance : -distance };
+        }
+      }
+      return best && best.distance < 30 ? best.signed : null;
+    });
+  }
+
+  function percentile(values, q) {
+    const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b);
+    if (!sorted.length) return null;
+    return sorted[Math.min(sorted.length - 1, Math.floor(q * (sorted.length - 1)))];
+  }
+
+  // Adds derived per-point channels to the comparison and returns their keys.
+  function addDerivedChannels(current) {
+    const derived = [];
+    const ref = refEntry(current);
+    const first = ref.points.find((point) => point.lat !== null);
+    if (first && current.comparisons.length > 1) {
+      const project = localProjector(first.lat, first.lon);
+      current.comparisons.forEach((entry) => {
+        const offsets = entry === ref ? entry.points.map((point) => (point.lat === null ? null : 0)) : lineOffsets(entry, ref, project);
+        entry.points.forEach((point, i) => {
+          point.ch.lineOffset = offsets[i];
+        });
+        entry.derived = (entry.derived || []).concat("lineOffset");
+      });
+      derived.push("lineOffset");
+    }
+    if (current.group.channels.includes("latG") && current.group.channels.includes("longG")) {
+      // "Available grip" = what the car showed it can do this session: the 98th
+      // percentile of combined G across all laps on this track.
+      const all = [];
+      current.comparisons.forEach((entry) =>
+        entry.points.forEach((point) => {
+          const { latG, longG } = point.ch;
+          point.ch.combinedG = latG === null || longG === null || latG === undefined || longG === undefined ? null : Math.hypot(latG, longG);
+          all.push(point.ch.combinedG);
+        })
+      );
+      const envelope = percentile(all, 0.98);
+      current.gripEnvelope = envelope;
+      if (envelope && envelope > 0.2) {
+        current.comparisons.forEach((entry) => {
+          entry.points.forEach((point) => {
+            point.ch.gripUse = point.ch.combinedG === null ? null : Math.min(120, (point.ch.combinedG / envelope) * 100);
+          });
+          entry.derived = (entry.derived || []).concat("combinedG", "gripUse");
+        });
+        derived.push("gripUse", "combinedG");
+      }
+    }
+    return derived;
+  }
+
+  // Line and grip numbers for one lap through one corner zone.
+  function cornerExtras(entry, zone, apexIndex) {
+    const { points } = entry;
+    const window = Math.max(2, Math.round((zone.end - zone.start) * 0.05));
+    const offsets = [];
+    for (let i = Math.max(zone.start, apexIndex - window); i <= Math.min(zone.end, apexIndex + window); i += 1) {
+      if (points[i].ch.lineOffset !== null && points[i].ch.lineOffset !== undefined) offsets.push(points[i].ch.lineOffset);
+    }
+    let gripTotal = 0;
+    let gripCount = 0;
+    let peakG = 0;
+    for (let i = zone.start; i <= zone.end; i += 1) {
+      const { gripUse, combinedG } = points[i].ch;
+      if (combinedG !== null && combinedG !== undefined) peakG = Math.max(peakG, combinedG);
+      // Only the loaded part of the corner (braking + turning), not the straight.
+      if (gripUse !== null && gripUse !== undefined && combinedG > 0.25) {
+        gripTotal += gripUse;
+        gripCount += 1;
+      }
+    }
+    return {
+      apexOffset: offsets.length ? offsets.reduce((sum, value) => sum + value, 0) / offsets.length : null,
+      grip: gripCount ? gripTotal / gripCount : null,
+      peakG: peakG || null,
+    };
+  }
+
+  // +1 for a left-hand corner, -1 for a right-hander, from the reference line.
+  function cornerDirection(refEntry, zone) {
+    const at = (i) => refEntry.points[Math.max(0, Math.min(refEntry.points.length - 1, i))];
+    const span = Math.max(3, Math.round((zone.end - zone.start) / 4));
+    const a = at(zone.apex - span);
+    const b = at(zone.apex);
+    const c = at(zone.apex + span);
+    if (a.lat === null || b.lat === null || c.lat === null) return 0;
+    const project = localProjector(b.lat, b.lon);
+    const [ax, ay] = project(a.lat, a.lon);
+    const [cx, cy] = project(c.lat, c.lon);
+    const cross = -ax * (cy - 0) + ay * cx; // (b - a) x (c - b) with b at the origin
+    return cross > 0 ? 1 : cross < 0 ? -1 : 0;
+  }
+
+  // "1.8 m wider" / "1.2 m tighter" for the coached lap at the apex.
+  function lineText(row) {
+    if (row.cmpExtra.apexOffset === null || row.direction === 0) return "–";
+    const inside = row.cmpExtra.apexOffset * row.direction;
+    if (Math.abs(inside) < 0.5) return "same";
+    return `${Math.abs(inside).toFixed(1)} m ${inside > 0 ? "tighter" : "wider"}`;
+  }
+
   // ---- Corners -------------------------------------------------------------
 
   function cornerZones(current) {
@@ -1590,6 +1745,7 @@
       }
     }
     return {
+      apexIndex: apex,
       apexX: points[apex].x,
       entrySpeed: points[zone.start].speed,
       minSpeed: points[apex].speed,
@@ -1605,6 +1761,8 @@
     };
   }
 
+  const gripText = (value) => (value === null ? "–" : `${value.toFixed(0)}%`);
+
   function updateCorners(current) {
     const zones = cornerZones(current);
     current.corners = zones;
@@ -1615,14 +1773,22 @@
     els.cornerCompare.textContent = same ? `Reference: ${current.reference.label}` : `${current.compare.label} vs ${current.reference.label}`;
     current.cornerRows = [];
     if (!zones.length) {
-      els.cornerBody.innerHTML = `<tr><td colspan="7">No clear corners found in the reference lap.</td></tr>`;
+      els.cornerBody.innerHTML = `<tr><td colspan="9">No clear corners found in the reference lap.</td></tr>`;
       els.cornerSummary.textContent = "";
       return;
     }
     const rows = zones.map((zone) => {
       const ref = cornerMetrics(reference, zone, channels);
       const cmp = cornerMetrics(compare, zone, channels);
-      return { zone, ref, cmp, dt: cmp.time - ref.time };
+      return {
+        zone,
+        ref,
+        cmp,
+        dt: cmp.time - ref.time,
+        direction: cornerDirection(reference, zone),
+        refExtra: cornerExtras(reference, zone, ref.apexIndex),
+        cmpExtra: cornerExtras(compare, zone, cmp.apexIndex),
+      };
     });
     const worst = rows
       .filter((row) => row.dt > 0.02)
@@ -1650,6 +1816,8 @@
           <td class="${same ? "" : cellClass(-(cmp.minSpeed - ref.minSpeed), 1)}">${same ? "–" : formatSigned(cmp.minSpeed - ref.minSpeed, 1)}</td>
           <td class="${same ? "" : cellClass(-(cmp.exitSpeed - ref.exitSpeed), 1)}">${same ? "–" : formatSigned(cmp.exitSpeed - ref.exitSpeed, 1)}</td>
           <td>${same ? (ref.brakeX === null ? "–" : `${Math.round(current.xs[zone.apex] - ref.brakeX)} m before apex`) : brakeText}</td>
+          <td>${same ? "–" : lineText(row)}</td>
+          <td>${gripText(row.refExtra.grip)}${same ? "" : ` / ${gripText(row.cmpExtra.grip)}`}</td>
           <td class="${same ? "" : cellClass(dt, 0.02)}">${same ? ref.time.toFixed(2) : formatSigned(dt)}</td>
         </tr>`;
       })
@@ -1755,6 +1923,28 @@
           0
         )}% on your best lap. Less rear drive here lines up with the slower exit, so check the mode and throttle you used.`,
       });
+    }
+    if (row.cmpExtra && row.cmpExtra.grip !== null && row.refExtra.grip !== null && row.refExtra.grip - row.cmpExtra.grip > 8) {
+      tips.push({
+        weight: 1.7,
+        title: "Grip left unused",
+        detail: `You used ${row.cmpExtra.grip.toFixed(0)}% of the available grip through ${name}, against ${row.refExtra.grip.toFixed(
+          0
+        )}% on your best lap. The car can take more load here: brake harder or carry more speed.`,
+      });
+    }
+    if (row.direction && row.cmpExtra && row.cmpExtra.apexOffset !== null) {
+      const inside = row.cmpExtra.apexOffset * row.direction;
+      if (Math.abs(inside) >= 1.5 && (minDiff < -1 || exitDiff < -2)) {
+        tips.push({
+          weight: 1.6,
+          title: inside > 0 ? "Apex too tight" : "Missing the apex",
+          detail:
+            inside > 0
+              ? `You're about ${Math.abs(inside).toFixed(1)} m tighter than your best line at the apex, which tightens the corner and costs exit speed. Turn in a little later and use more track on entry.`
+              : `You're about ${Math.abs(inside).toFixed(1)} m wide of your best line at the apex. Get closer to the inside so you can straighten the wheel and use the exit sooner.`,
+        });
+      }
     }
     if (!tips.length) {
       const parts = [];
@@ -1867,7 +2057,7 @@
       "Corners (distance of apex along the lap; ref = reference lap, you = coached lap):",
     ];
     (current.cornerRows || []).forEach((row) => {
-      const f = (metrics) =>
+      const f = (metrics, extra) =>
         [
           `entry ${metrics.entrySpeed.toFixed(0)}`,
           `min ${metrics.minSpeed.toFixed(0)}`,
@@ -1884,12 +2074,19 @@
           metrics.eds ? "EDS/XDS active" : null,
           metrics.exitLock !== null ? `Haldex lock on exit ${metrics.exitLock.toFixed(0)}%` : null,
           `time in corner ${metrics.time.toFixed(2)} s`,
+          extra && extra.grip !== null ? `grip used ${extra.grip.toFixed(0)}%` : null,
+          extra && extra.peakG ? `peak ${extra.peakG.toFixed(2)} G` : null,
         ]
           .filter(Boolean)
           .join(", ");
       lines.push(`T${row.zone.number} at ${Math.round(current.xs[row.zone.apex])} m:`);
-      lines.push(`  ref: ${f(row.ref)}`);
-      if (compare.id !== reference.id) lines.push(`  you: ${f(row.cmp)}; time vs ref ${formatSigned(row.dt, 2)} s`);
+      lines.push(`  ref: ${f(row.ref, row.refExtra)}`);
+      if (compare.id !== reference.id) {
+        const line = lineText(row);
+        lines.push(
+          `  you: ${f(row.cmp, row.cmpExtra)}; line at apex vs ref: ${line === "–" ? "unknown" : line}; time vs ref ${formatSigned(row.dt, 2)} s`
+        );
+      }
     });
     if (current.coach && current.coach.tips.length) {
       lines.push("", "Automatic tips already shown to the driver:");
@@ -1973,6 +2170,174 @@
     }
   }
 
+  // ---- Printable report ----------------------------------------------------
+
+  function trackSvg(current) {
+    const ref = refEntry(current);
+    const cmp = focusEntry(current);
+    const first = ref.points.find((point) => point.lat !== null);
+    if (!first) return "";
+    const project = localProjector(first.lat, first.lon);
+    const toXY = (entry) => entry.points.map((point) => (point.lat === null ? null : project(point.lat, point.lon)));
+    const refXY = toXY(ref);
+    const cmpXY = cmp === ref ? refXY : toXY(cmp);
+    const all = refXY.concat(cmpXY).filter(Boolean);
+    const minX = Math.min(...all.map((p) => p[0]));
+    const maxX = Math.max(...all.map((p) => p[0]));
+    const minY = Math.min(...all.map((p) => p[1]));
+    const maxY = Math.max(...all.map((p) => p[1]));
+    const width = 640;
+    const height = 380;
+    const pad = 24;
+    const scale = Math.min((width - 2 * pad) / Math.max(1, maxX - minX), (height - 2 * pad) / Math.max(1, maxY - minY));
+    const offsetX = (width - (maxX - minX) * scale) / 2;
+    const offsetY = (height - (maxY - minY) * scale) / 2;
+    const sx = (p) => (offsetX + (p[0] - minX) * scale).toFixed(1);
+    const sy = (p) => (height - offsetY - (p[1] - minY) * scale).toFixed(1);
+    const path = (points) =>
+      points
+        .filter(Boolean)
+        .map((p, i) => `${i ? "L" : "M"}${sx(p)} ${sy(p)}`)
+        .join(" ");
+    let body = `<path d="${path(refXY)}" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="5 4"/>`;
+    if (cmp !== ref) {
+      const rates = gainRates(cmp, current.xs);
+      let run = null;
+      const segments = [];
+      cmpXY.forEach((p, i) => {
+        if (!p) return;
+        const color = GAIN_COLORS[gainBucket(rates[i])];
+        if (run && run.color === color) run.points.push(p);
+        else {
+          const previous = run ? run.points[run.points.length - 1] : null;
+          if (run) segments.push(run);
+          run = { color, points: previous ? [previous, p] : [p] };
+        }
+      });
+      if (run) segments.push(run);
+      body += segments
+        .map((segment) => `<path d="${path(segment.points)}" fill="none" stroke="${segment.color}" stroke-width="5" stroke-linecap="round"/>`)
+        .join("");
+    }
+    (current.cornerRows || []).forEach((row) => {
+      const p = refXY[row.zone.apex];
+      if (!p) return;
+      body += `<g transform="translate(${sx(p)} ${sy(p)})"><circle r="10" fill="${row.worst ? "#d73027" : "#fff"}" stroke="#222" stroke-width="1.5"/><text text-anchor="middle" dy="3.5" font-size="9" font-weight="800" fill="${
+        row.worst ? "#fff" : "#222"
+      }">T${row.zone.number}</text></g>`;
+    });
+    const start = refXY.find(Boolean);
+    if (start)
+      body += `<circle cx="${sx(start)}" cy="${sy(start)}" r="5" fill="#111"/><text x="${sx(start)}" y="${Number(sy(start)) - 9}" text-anchor="middle" font-size="10" font-weight="700">Start</text>`;
+    return `<svg viewBox="0 0 ${width} ${height}" class="telemetry-report-track" role="img" aria-label="Track map">${body}</svg>`;
+  }
+
+  function chartImage(name, title) {
+    const chart = state.charts[name];
+    if (!chart) return "";
+    return `<figure><figcaption>${escapeHtml(title)}</figcaption><img src="${chart.toBase64Image("image/png", 1)}" alt="${escapeHtml(title)}"></figure>`;
+  }
+
+  function buildReport() {
+    const current = state.current;
+    if (!current) return;
+    const { group, reference, compare } = current;
+    const fastest = Math.min(...group.laps.map((lap) => lap.lapTime));
+    const lapRows = current.comparisons
+      .slice()
+      .sort((a, b) => a.badge - b.badge)
+      .map((entry) => {
+        const role = entry.lap.id === reference.id ? "reference" : entry.lap.id === compare.id ? "coached lap" : "";
+        return `<tr><td>${lapBadgeHtml(entry)}</td><td>${escapeHtml(entry.lap.label)}${role ? ` <small>(${role})</small>` : ""}</td><td>${formatTime(
+          entry.lap.lapTime
+        )}</td><td>${entry.lap.lapTime === fastest ? "best" : `+${(entry.lap.lapTime - fastest).toFixed(3)}`}</td></tr>`;
+      })
+      .join("");
+    const coach = current.coach || { tips: [], headline: "" };
+    const tips = coach.tips
+      .map(
+        (tip) =>
+          `<li><b>${tip.corner} · ${escapeHtml(tip.title)}</b>${tip.gain !== null ? ` <em>${formatSigned(tip.gain, 2)} s</em>` : ""}<br>${escapeHtml(tip.detail)}</li>`
+      )
+      .join("");
+    const debrief = state.coachChat.filter((message) => message.role === "assistant");
+    const cornerTable = document.querySelector(".telemetry-corner-table");
+    const generated = new Date().toLocaleString();
+    return `
+      <header>
+        <p class="telemetry-kicker">LAP REPORT</p>
+        <h1>${escapeHtml(group.name === "Loaded session" ? reference.filename.replace(/\.(csv|vbo)$/i, "") : group.name)}</h1>
+        <p>${plural(group.laps.length, "lap")} · best ${formatTime(fastest)} · coached lap ${escapeHtml(compare.label)} vs reference ${escapeHtml(
+          reference.label
+        )} · generated ${escapeHtml(generated)}</p>
+      </header>
+      <section class="telemetry-report-row">
+        <div>
+          <h2>Laps</h2>
+          <table class="telemetry-table"><thead><tr><th>#</th><th>Lap</th><th>Time</th><th>Gap</th></tr></thead><tbody>${lapRows}</tbody></table>
+        </div>
+        <div>
+          <h2>Track${compare.id !== reference.id ? " · green gaining, red losing" : ""}</h2>
+          ${trackSvg(current)}
+        </div>
+      </section>
+      <section>
+        <h2>Coach</h2>
+        <p>${coach.headline}</p>
+        ${tips ? `<ol class="telemetry-report-tips">${tips}</ol>` : ""}
+        ${debrief.length ? `<h3>AI coach debrief</h3>${debrief.map((message) => `<div class="telemetry-report-debrief">${formatCoachText(message.content)}</div>`).join("")}` : ""}
+      </section>
+      <section class="telemetry-report-charts">
+        ${chartImage("speed", "Speed over distance (km/h)")}
+        ${chartImage("delta", "Delta to reference (s)")}
+      </section>
+      ${cornerTable ? `<section><h2>Corner by corner</h2>${cornerTable.outerHTML}</section>` : ""}
+      <footer>Made with the RaceChrono lap analyzer · tristar10.github.io/telemetry</footer>`;
+  }
+
+  const REPORT_CSS = `
+    body { color: #171717; font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 24px auto; max-width: 900px; padding: 0 16px; }
+    h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 4px; }
+    h2 { font-size: 15px; margin: 18px 0 8px; }
+    h3 { font-size: 13px; margin: 12px 0 6px; }
+    header p { color: #666; margin: 0; }
+    .telemetry-kicker { color: #ef5b2a; font-size: 10px; font-weight: 800; letter-spacing: 0.16em; margin: 0 0 4px; }
+    .telemetry-report-row { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+    .telemetry-report-track { border: 1px solid #ddd; border-radius: 6px; width: 100%; }
+    .telemetry-table { border-collapse: collapse; font-size: 11px; width: 100%; }
+    .telemetry-table th, .telemetry-table td { border-bottom: 1px solid #e5e5e5; padding: 5px 4px; text-align: right; white-space: nowrap; }
+    .telemetry-table th:first-child, .telemetry-table td:first-child, .telemetry-table td:nth-child(2) { text-align: left; }
+    .telemetry-table small { color: #888; }
+    .is-loss { color: #d73027; font-weight: 700; } .is-gain { color: #1a9850; font-weight: 700; }
+    .telemetry-lap-badge { align-items: center; background: var(--chip-color); border-radius: 50%; color: #fff; display: inline-flex; font-size: 10px; font-weight: 800; height: 18px; justify-content: center; width: 18px; }
+    .telemetry-report-tips { padding-left: 18px; } .telemetry-report-tips li { margin-bottom: 6px; } .telemetry-report-tips em { color: #d73027; font-style: normal; font-weight: 700; }
+    .telemetry-report-debrief { background: #fdf0eb; border-radius: 6px; padding: 8px 12px; }
+    .telemetry-report-charts { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 14px; }
+    figure { margin: 0; } figcaption { font-weight: 700; margin-bottom: 4px; } figure img { border: 1px solid #eee; width: 100%; }
+    footer { border-top: 1px solid #ddd; color: #888; font-size: 11px; margin-top: 20px; padding-top: 8px; }
+    .telemetry-report-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; }
+    .telemetry-report-actions button { background: #ef5b2a; border: 0; border-radius: 6px; color: #fff; cursor: pointer; font: inherit; font-weight: 700; padding: 8px 14px; }
+    section, tr, figure, svg { break-inside: avoid; }
+    @media print { .telemetry-report-actions { display: none; } body { margin: 0; } }
+    @media (max-width: 640px) { .telemetry-report-row, .telemetry-report-charts { grid-template-columns: 1fr; } }`;
+
+  // Opens the report in its own tab; "Save as PDF" in the print dialog makes
+  // a file that can be sent to anyone.
+  function printReport() {
+    if (!state.current) return;
+    const html = buildReport();
+    const tab = window.open("", "_blank");
+    if (!tab) {
+      setStatus("Allow pop-ups for this site to open the report.", true);
+      return;
+    }
+    tab.document.open();
+    tab.document.write(
+      `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lap report</title><style>${REPORT_CSS}</style></head><body><div class="telemetry-report-actions"><button type="button" onclick="window.print()">Save as PDF / Print</button></div>${html}</body></html>`
+    );
+    tab.document.close();
+  }
+
   function sectorTimes(entry) {
     const points = entry.points;
     const maxDistance = points[points.length - 1].x;
@@ -2020,11 +2385,12 @@
       .join("");
   }
 
-  function updateMapModeOptions(group) {
+  function updateMapModeOptions(current) {
+    const { group } = current;
     const options = [["laps", "Lap colors"]];
     if (group.laps.length > 1) options.push(["gain", "Gain / loss vs reference"]);
     options.push(["speed", "Speed"]);
-    group.channels.forEach((key) => options.push([`ch:${key}`, CHANNEL_BY_KEY[key].label]));
+    current.channels.forEach((key) => options.push([`ch:${key}`, CHANNEL_BY_KEY[key].label]));
     if (!options.some(([value]) => value === state.mapMode)) state.mapMode = "laps";
     els.mapMode.innerHTML = options
       .map(([value, label]) => `<option value="${value}" ${value === state.mapMode ? "selected" : ""}>${escapeHtml(label)}</option>`)
@@ -2054,27 +2420,28 @@
     let compare = group.laps.find((lap) => lap.id === state.compareId);
     if (!compare || (compare.id === reference.id && group.laps.length > 1)) compare = byTime.find((lap) => lap.id !== reference.id) || reference;
     state.compareId = compare.id;
-    if (!group.channels.includes(state.channelKey)) {
-      state.channelKey = ["lock", "throttle", "brake", "longG", "latG"].find((key) => group.channels.includes(key)) || group.channels[0] || null;
-    }
-
     els.reference.innerHTML = lapOptions(group.laps, reference.id);
     els.compare.innerHTML = lapOptions(group.laps, compare.id);
-    els.channel.innerHTML = group.channels
-      .map((key) => `<option value="${key}" ${key === state.channelKey ? "selected" : ""}>${escapeHtml(CHANNEL_BY_KEY[key].label)}</option>`)
-      .join("");
 
     els.results.hidden = false;
     stopReplay();
     const { xs, comparisons } = comparisonData(group, reference);
     state.current = { group, reference, compare, xs, comparisons };
+    const channels = group.channels.concat(addDerivedChannels(state.current));
+    state.current.channels = channels;
+    if (!channels.includes(state.channelKey)) {
+      state.channelKey = ["lock", "throttle", "brake", "lineOffset", "longG", "latG"].find((key) => channels.includes(key)) || channels[0] || null;
+    }
+    els.channel.innerHTML = channels
+      .map((key) => `<option value="${key}" ${key === state.channelKey ? "selected" : ""}>${escapeHtml(CHANNEL_BY_KEY[key].label)}</option>`)
+      .join("");
     if (state.cursorIndex !== null && state.cursorIndex >= xs.length) state.cursorIndex = null;
     updateKpis(group, reference);
     updateCharts(comparisons, reference);
     updateChannelChart();
     updateGG();
     updateCorners(state.current);
-    updateMapModeOptions(group);
+    updateMapModeOptions(state.current);
     updateMap(state.current);
     updateSectors(comparisons, reference);
     updateCoach(state.current);
@@ -2182,6 +2549,7 @@
       sectorBody: byId("telemetry-sector-body"),
       theoretical: byId("telemetry-theoretical"),
       coachHeadline: byId("telemetry-coach-headline"),
+      reportButton: byId("telemetry-report-button"),
       coachTips: byId("telemetry-coach-tips"),
       coachAsk: byId("telemetry-coach-ask"),
       coachStatus: byId("telemetry-coach-status"),
@@ -2282,6 +2650,7 @@
       }
     });
     els.coachAsk.addEventListener("click", () => askCoach());
+    els.reportButton.addEventListener("click", printReport);
     els.coachForm.addEventListener("submit", (event) => {
       event.preventDefault();
       const question = els.coachInput.value.trim();

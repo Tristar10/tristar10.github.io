@@ -1112,3 +1112,13 @@ body.telemetry-panel-open {
   margin: 0.5rem 0 0;
   max-width: 820px;
 }
+
+.telemetry-toolbar .telemetry-report-button {
+  border-color: var(--telemetry-accent);
+  color: var(--telemetry-accent);
+  font-weight: 700;
+}
+
+.telemetry-toolbar .telemetry-report-button + .telemetry-reset {
+  margin-left: 0;
+}
